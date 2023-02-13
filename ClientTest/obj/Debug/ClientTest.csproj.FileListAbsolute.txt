@@ -1,0 +1,8 @@
+C:\Users\Komárek Matěj\source\repos\ClientTest\obj\Debug\ClientTest.csproj.AssemblyReference.cache
+C:\Users\Komárek Matěj\source\repos\ClientTest\obj\Debug\ClientTest.csproj.SuggestedBindingRedirects.cache
+C:\Users\Komárek Matěj\source\repos\ClientTest\obj\Debug\ClientTest.csproj.CoreCompileInputs.cache
+C:\Users\Komárek Matěj\source\repos\ClientTest\bin\Debug\ClientTest.exe.config
+C:\Users\Komárek Matěj\source\repos\ClientTest\bin\Debug\ClientTest.exe
+C:\Users\Komárek Matěj\source\repos\ClientTest\bin\Debug\ClientTest.pdb
+C:\Users\Komárek Matěj\source\repos\ClientTest\obj\Debug\ClientTest.exe
+C:\Users\Komárek Matěj\source\repos\ClientTest\obj\Debug\ClientTest.pdb
