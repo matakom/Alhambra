@@ -20,9 +20,9 @@ namespace ClientTest
         static async void ConnectToServer()
         {
             Uri serverUri = new Uri("ws://localhost:5000");
-            //Implementation of timeout of 5000 ms
+
             var source = new CancellationTokenSource();
-            source.CancelAfter(500000);
+            source.CancelAfter(50000);
 
             using (ClientWebSocket myWebSocket = new ClientWebSocket())
             {
@@ -39,13 +39,24 @@ namespace ClientTest
                 Console.WriteLine("Connected to server\n");
                 while (myWebSocket.State == WebSocketState.Open)
                 {
-                    string message = Console.ReadLine();
-                    byte[] messageyBytes = Encoding.UTF8.GetBytes(message);
-                    await myWebSocket.SendAsync(new ArraySegment<byte>(messageyBytes), WebSocketMessageType.Text, true, source.Token);
-                    ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[1024]);
-                    WebSocketReceiveResult result = await myWebSocket.ReceiveAsync(buffer, CancellationToken.None);
-                    message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
-                    Console.WriteLine(message);
+                    try
+                    {
+                        string message = Console.ReadLine();
+                        byte[] messageyBytes = Encoding.UTF8.GetBytes(message);
+                        await myWebSocket.SendAsync(new ArraySegment<byte>(messageyBytes), WebSocketMessageType.Binary, false, source.Token);
+                        ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[1024]);
+                        WebSocketReceiveResult result = await myWebSocket.ReceiveAsync(buffer, CancellationToken.None);
+                        message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
+                        Console.WriteLine(message);
+                    }
+                    catch(Exception e)
+                    {
+                        Console.WriteLine("Exception:\n" + e);
+                    }
+                }
+                while (true)
+                {
+                    Console.WriteLine("Jsem nepreskocitelny");
                 }
                 Console.ReadKey();
             }

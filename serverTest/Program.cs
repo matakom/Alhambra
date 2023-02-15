@@ -37,17 +37,26 @@ namespace serverTest
         static async void ProcessRequest(HttpListenerContext context)
         {
             var source = new CancellationTokenSource();
-            source.CancelAfter(500000);
+            source.CancelAfter(50000);
             var webSocketContext = await context.AcceptWebSocketAsync(subProtocol: null);
             WebSocket serverWebSocket = webSocketContext.WebSocket;
             Console.WriteLine("WS connected");
             while (serverWebSocket.State == WebSocketState.Open)
             {
                 ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[1024]);
-                Console.WriteLine(serverWebSocket.State);
-                WebSocketReceiveResult result = await serverWebSocket.ReceiveAsync(buffer, source.Token);
-                string message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
-                Console.WriteLine(message);
+                string message = "";
+                try
+                {
+                    Console.WriteLine(serverWebSocket.State);
+                    WebSocketReceiveResult result = await serverWebSocket.ReceiveAsync(buffer, source.Token);
+                    message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
+                    Console.WriteLine("RECEIVED: " + message);
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine("Exception RECEIVEASYNC:\n" + e);
+                    Console.ReadKey();
+                }
 
                 switch (message)
                 {
@@ -63,12 +72,12 @@ namespace serverTest
                 Console.WriteLine(serverWebSocket.State);
                 try
                 {
-                    await serverWebSocket.SendAsync(buffer, WebSocketMessageType.Text, true, source.Token);
+                    await serverWebSocket.SendAsync(buffer, WebSocketMessageType.Text, false, source.Token);
                     Console.WriteLine("Sent: " + message);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
-                    Console.WriteLine(e);
+                    Console.WriteLine("Exception SENDASYNC:\n" + e);
                     Console.ReadKey();
                 }
             }
