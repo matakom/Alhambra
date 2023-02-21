@@ -22,8 +22,8 @@ namespace serverTest
             HttpListener listener = new HttpListener();
             listener.Prefixes.Add(url);
             listener.Start();
-            Console.WriteLine("Waiting for WS connection...\n");
-            Console.WriteLine(url + "\n");
+            Console.WriteLine("Waiting for WS connection...");
+            Console.WriteLine(url);
 
             while (true)
             {
@@ -31,24 +31,25 @@ namespace serverTest
                 if (context.Request.IsWebSocketRequest)
                 {
                     ProcessRequest(context);
+                    while (true)
+                    {
+                        Thread.Sleep(10000);
+                    }
                 }
             }
         }
-        static async void ProcessRequest(HttpListenerContext context)
+        static async Task ProcessRequest(HttpListenerContext context)
         {
-            var source = new CancellationTokenSource();
-            source.CancelAfter(50000);
             var webSocketContext = await context.AcceptWebSocketAsync(subProtocol: null);
             WebSocket serverWebSocket = webSocketContext.WebSocket;
-            Console.WriteLine("WS connected");
+            Console.Write("WS connected\n--------------------");
             while (serverWebSocket.State == WebSocketState.Open)
             {
                 ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[1024]);
                 string message = "";
                 try
                 {
-                    Console.WriteLine(serverWebSocket.State);
-                    WebSocketReceiveResult result = await serverWebSocket.ReceiveAsync(buffer, source.Token);
+                    WebSocketReceiveResult result = await serverWebSocket.ReceiveAsync(buffer, CancellationToken.None);
                     message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
                     Console.WriteLine("RECEIVED: " + message);
                 }
@@ -69,10 +70,9 @@ namespace serverTest
                 }
 
                 buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(message));
-                Console.WriteLine(serverWebSocket.State);
                 try
                 {
-                    await serverWebSocket.SendAsync(buffer, WebSocketMessageType.Text, false, source.Token);
+                    await serverWebSocket.SendAsync(buffer, WebSocketMessageType.Text, false, CancellationToken.None);
                     Console.WriteLine("Sent: " + message);
                 }
                 catch (Exception e)
@@ -82,7 +82,5 @@ namespace serverTest
                 }
             }
         }
-
-
     }
 }

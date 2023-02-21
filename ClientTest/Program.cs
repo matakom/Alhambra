@@ -16,34 +16,35 @@ namespace ClientTest
         static void Main()
         {
             ConnectToServer();
+            while (true)
+            {
+                Thread.Sleep(10000);
+            }
         }
-        static async void ConnectToServer()
+        static async Task ConnectToServer()
         {
             Uri serverUri = new Uri("ws://localhost:5000");
-
-            var source = new CancellationTokenSource();
-            source.CancelAfter(50000);
 
             using (ClientWebSocket myWebSocket = new ClientWebSocket())
             {
 
                 try
                 {
-                    myWebSocket.ConnectAsync(serverUri, source.Token).Wait(source.Token);
+                    await myWebSocket.ConnectAsync(serverUri, CancellationToken.None);
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine("Exception:" + e);
                     Console.ReadKey();
                 }
-                Console.WriteLine("Connected to server\n");
+                Console.WriteLine("Connected to server\n--------------------");
                 while (myWebSocket.State == WebSocketState.Open)
                 {
                     try
                     {
                         string message = Console.ReadLine();
                         byte[] messageyBytes = Encoding.UTF8.GetBytes(message);
-                        await myWebSocket.SendAsync(new ArraySegment<byte>(messageyBytes), WebSocketMessageType.Binary, false, source.Token);
+                        await myWebSocket.SendAsync(new ArraySegment<byte>(messageyBytes), WebSocketMessageType.Binary, false, CancellationToken.None);// Wait(CancellationToken.None);
                         ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[1024]);
                         WebSocketReceiveResult result = await myWebSocket.ReceiveAsync(buffer, CancellationToken.None);
                         message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
@@ -54,11 +55,6 @@ namespace ClientTest
                         Console.WriteLine("Exception:\n" + e);
                     }
                 }
-                while (true)
-                {
-                    Console.WriteLine("Jsem nepreskocitelny");
-                }
-                Console.ReadKey();
             }
         }
     }
