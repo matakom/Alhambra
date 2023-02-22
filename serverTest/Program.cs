@@ -5,11 +5,11 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-
 using System.Net.WebSockets;
 using System.Threading;
 using System.Security.Policy;
 using System.Diagnostics;
+using Newtonsoft.Json;
 
 namespace serverTest
 {
@@ -46,34 +46,32 @@ namespace serverTest
             while (serverWebSocket.State == WebSocketState.Open)
             {
                 ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[1024]);
-                string message = "";
-                try
-                {
-                    WebSocketReceiveResult result = await serverWebSocket.ReceiveAsync(buffer, CancellationToken.None);
-                    message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
-                    Console.WriteLine("RECEIVED: " + message);
-                }
-                catch(Exception e)
-                {
-                    Console.WriteLine("Exception RECEIVEASYNC:\n" + e);
-                    Console.ReadKey();
-                }
+                //var jsonObject = new { messageJson = "", id = 0 };
 
-                switch (message)
+                WebSocketReceiveResult result = await serverWebSocket.ReceiveAsync(buffer, CancellationToken.None);
+                string jsonString = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
+                dynamic response = JsonConvert.DeserializeObject(jsonString);
+                Console.WriteLine("RECEIVED FROM CLIENT: " + response.id + "\nMESSAGE: " + response.messageJson);
+
+
+                switch (response.messageJson.ToString())
                 {
                     case "ahoj":
-                        message = "Zdravím tě dobrodruhu";
+                        response.messageJson = "Zdravím tě dobrodruhu";
                         break;
                     case "matyáš je frajer":
-                        message = "Hahaha. ten byl dobrej";
+                        response.messageJson = "Hahaha. ten byl dobrej";
+                        break;
+                    default:
+                        response.messageJson = "ECHO";
                         break;
                 }
-
-                buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(message));
+                jsonString = JsonConvert.SerializeObject(response);
+                buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(jsonString));
                 try
                 {
                     await serverWebSocket.SendAsync(buffer, WebSocketMessageType.Text, false, CancellationToken.None);
-                    Console.WriteLine("Sent: " + message);
+                    Console.WriteLine("Sent: " + response.messageJson);
                 }
                 catch (Exception e)
                 {

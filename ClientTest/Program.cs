@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace ClientTest
 {
@@ -42,13 +43,21 @@ namespace ClientTest
                 {
                     try
                     {
-                        string message = Console.ReadLine();
-                        byte[] messageyBytes = Encoding.UTF8.GetBytes(message);
-                        await myWebSocket.SendAsync(new ArraySegment<byte>(messageyBytes), WebSocketMessageType.Binary, false, CancellationToken.None);// Wait(CancellationToken.None);
+                        //Načtení inputu a vytvoření json
+                        var jsonObject = new { messageJson = Console.ReadLine() , id = 1};
+
+
+                        //Poslání zprávy
+                        string jsonString = JsonConvert.SerializeObject(jsonObject);
+                        byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonString);
+                        await myWebSocket.SendAsync(new ArraySegment<byte>(jsonBytes), WebSocketMessageType.Text, false, CancellationToken.None);
+                        
+                        
                         ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[1024]);
                         WebSocketReceiveResult result = await myWebSocket.ReceiveAsync(buffer, CancellationToken.None);
-                        message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
-                        Console.WriteLine(message);
+                        jsonString = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
+                        dynamic response = JsonConvert.DeserializeObject(jsonString);
+                        Console.WriteLine("ID: " + response.id + "\nMessage: " + response.messageJson);
                     }
                     catch(Exception e)
                     {
