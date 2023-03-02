@@ -15,6 +15,7 @@ namespace serverTest
 {
     class Program
     {
+
         static void Main(string[] args)
         {
             string port = "5000";
@@ -30,19 +31,15 @@ namespace serverTest
                 HttpListenerContext context = listener.GetContext();
                 if (context.Request.IsWebSocketRequest)
                 {
-                    ProcessRequest(context);
-                    while (true)
-                    {
-                        Thread.Sleep(10000);
-                    }
+                    UserProcess(context);
                 }
             }
         }
-        static async Task ProcessRequest(HttpListenerContext context)
+        static async Task UserProcess(HttpListenerContext context)
         {
             var webSocketContext = await context.AcceptWebSocketAsync(subProtocol: null);
             WebSocket serverWebSocket = webSocketContext.WebSocket;
-            Console.Write("WS connected\n--------------------");
+            Console.Write("WS connected\n--------------------\n");
             while (serverWebSocket.State == WebSocketState.Open)
             {
                 ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[1024]);
@@ -53,6 +50,16 @@ namespace serverTest
                 dynamic response = JsonConvert.DeserializeObject(jsonString);
                 Console.WriteLine("RECEIVED FROM CLIENT: " + response.id + "\nMESSAGE: " + response.messageJson);
 
+                switch (response.action.ToString())
+                {
+                    case "createLobby":
+                        CreateLobby(serverWebSocket);
+                        break;
+                    case "leaveLobby":
+                        LeaveLobby(serverWebSocket);
+                        break;
+                }
+                /*
 
                 switch (response.messageJson.ToString())
                 {
@@ -78,7 +85,39 @@ namespace serverTest
                     Console.WriteLine("Exception SENDASYNC:\n" + e);
                     Console.ReadKey();
                 }
+                */
             }
+        }
+        static public string GenerateGameCode()
+        {
+            Random random = new Random();
+            string code = Convert.ToString(random.Next(1, 1000000));
+            int codeLength = code.Length;
+            for (int i = 0; i < 6 - codeLength; i++)
+            {
+                code = "0" + code;
+            }
+            return code;
+        }
+
+        static public async void CreateLobby(WebSocket serverWebSocket)
+        {
+            string gameCode = GenerateGameCode();
+            // Upravit databázi her
+
+            var jsonObject = new {gameCode = gameCode, id = 1 };
+
+
+            //Poslání zprávy
+            string jsonString = JsonConvert.SerializeObject(jsonObject);
+            byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonString);
+            await serverWebSocket.SendAsync(new ArraySegment<byte>(jsonBytes), WebSocketMessageType.Text, false, CancellationToken.None);
+
+        }
+
+        static public void LeaveLobby(WebSocket serverWebSocket)
+        {
+            // upravit databázi
         }
     }
 }

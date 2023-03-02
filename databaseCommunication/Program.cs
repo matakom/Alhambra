@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 using DotNetEnv;
@@ -19,7 +20,6 @@ namespace databaseCommunication
             string user = "User ID=spojeni;";
             string password = "Password=" + Environment.GetEnvironmentVariable("mySQLPassword") + ";";
             string database = "Database=alhambra";
-            string port = "3306;";
             string connectionString = server + user + password + database;
 
 
@@ -37,17 +37,29 @@ namespace databaseCommunication
             }
 
             //creating command
-            var command = new MySqlCommand("insert into user(username, mail) values('filipek', 'filipek2010@gmail.com');", databaseConnection);
-            var reader = command.ExecuteReader();
-            /*
-            while (reader.Read())
-                Console.WriteLine(reader.GetInt32(0));
-            */
+            //string sCommand = "insert into user(username, mail, passwordHash) values('ErikZUruguay', 'erik_z@urugay.com', '123erik');";
+            //string sCommand = "select username from user where id = 1";
+
+            Console.WriteLine(getText("mail", "where id = 9", databaseConnection));
+            
+
+            
             Console.WriteLine("hotovo");
             Console.ReadKey();
 
 
 
         }
+        static string getText(string attribute, string where, MySqlConnection databaseConnection)
+        {
+            string message = "";
+            string sCommand = "select " + attribute + " from user " + where + ";";
+            var command = new MySqlCommand(sCommand, databaseConnection);
+            var reader = command.ExecuteReader();
+            while (reader.Read())
+                message = (reader.GetString(0));
+            return message;
+        }
+
     }
 }

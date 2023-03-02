@@ -43,8 +43,21 @@ namespace ClientTest
                 {
                     try
                     {
+                        Console.WriteLine("1. Založte hru\n2. Připojte se do hry");
+
                         //Načtení inputu a vytvoření json
-                        var jsonObject = new { messageJson = Console.ReadLine() , id = 1};
+                        var jsonObject = new {action = "", id = -1};
+                        switch (Convert.ToInt16(Console.ReadLine()))
+                        {
+                            case 1:
+                                jsonObject = new { action = "createLobby", id = 2 };
+                                break;
+                            case 2:
+                                jsonObject = new { action = "leaveLobby", id = 1 };
+                                break;
+                        }
+
+                        //var jsonObject = new { messageJson = Console.ReadLine() , id = 1};
 
 
                         //Poslání zprávy
@@ -57,7 +70,7 @@ namespace ClientTest
                         WebSocketReceiveResult result = await myWebSocket.ReceiveAsync(buffer, CancellationToken.None);
                         jsonString = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
                         dynamic response = JsonConvert.DeserializeObject(jsonString);
-                        Console.WriteLine("ID: " + response.id + "\nMessage: " + response.messageJson);
+                        Console.WriteLine("ID: " + response.id + "\nMessage: " + response.gameCode);
                     }
                     catch(Exception e)
                     {
