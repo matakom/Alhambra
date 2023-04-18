@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+			 Width="1920" Height="1080"
+             x:Class="Klient.Views.MainMenuView">
+	<Grid RowDefinitions="*, Auto, Auto, Auto, *"
+		  ColumnDefinitions="*, Auto, *">
+		<Label Content="ALHAMBRA"
+			   Grid.Row="0"
+			   Grid.Column="1"
+			   HorizontalAlignment="Center"
+			   VerticalAlignment="Center"
+			   FontWeight="Bold"/>
+		<Button Content="Create lobby"
+				Command="{Binding CreateLobbyCommand}"
+				Classes="MainMenu"
+				Grid.Column="1"
+				Grid.Row="1"/>
+		<Button Content="Join lobby"
+				Command="{Binding JoinLobbyCommand}"
+				Classes="MainMenu"
+				Grid.Column="1"
+				Grid.Row="2"/>
+		<TextBox Watermark="Enter a code"
+				 Height="120"
+				 Width="400"
+				 Grid.Column="1"
+				 Grid.Row="3"
+				 HorizontalContentAlignment="Center"
+				 VerticalContentAlignment="Center"
+				 FontSize="60"
+				 Text="{Binding	gameCode, Mode=TwoWay}"/>
+		<Label Content="{Binding ErrorText, Mode=TwoWay}"
+			   Grid.Row="4"
+			   Grid.Column="1"
+			   HorizontalAlignment="Center"
+			   VerticalAlignment="Center"/>
+	</Grid>
+</UserControl>

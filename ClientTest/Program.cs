@@ -24,21 +24,39 @@ namespace ClientTest
         }
         static async Task ProcessUser(ClientWebSocket myWebSocket)
         {
+            Global.status = "connected";
             while (myWebSocket.State == WebSocketState.Open)
             {
-                Console.WriteLine("1. Založte hru\n2. Připojte se do hry");
-
-                //Načtení inputu a vytvoření json
-                //V budoucnu vstup (kliknutí)
-                switch (Convert.ToInt16(Console.ReadLine()))
+                if (Global.status == "connected")
                 {
-                    case 1:
-                        CreateLobby(myWebSocket);
-                        break;
-                    case 2:
-                        Console.Clear();
-                        JoinGame(myWebSocket);
-                        break;
+
+                    Console.WriteLine("1. Založte hru\n2. Připojte se do hry");
+
+                    //Načtení inputu a vytvoření json
+                    //V budoucnu vstup (kliknutí)
+                    switch (Convert.ToInt16(Console.ReadLine()))
+                    {
+                        case 1:
+                            await CreateLobby(myWebSocket);
+                            break;
+                        case 2:
+                            Console.Clear();
+                            await JoinGame(myWebSocket);
+                            break;
+                    }
+                }
+                else if (Global.status == "inLobby")
+                {
+                    Console.WriteLine("1. Opusťte lobby");
+
+                    //Načtení inputu a vytvoření json
+                    //V budoucnu vstup (kliknutí)
+                    switch (Convert.ToInt16(Console.ReadLine()))
+                    {
+                        case 1:
+                            LeaveLobby(myWebSocket);
+                            break;
+                    }
                 }
             }
         }
@@ -64,15 +82,14 @@ namespace ClientTest
         }
         static public string InputGameCode()
         {
-            string codeString = "";
             while (true)
             {
                 Console.WriteLine("Zadejte šest cifer kódu hry: ");
                 try
                 {
                     int code = Convert.ToInt32(Console.ReadLine());
-                    codeString = Convert.ToString(code);
-                    if (codeString.Length != 6)
+                    Global.gameCode = Convert.ToString(code);
+                    if (Global.gameCode.Length != 6)
                     {
                         throw new Exception("Kód nemá 6 cifer");
                     }
@@ -80,19 +97,20 @@ namespace ClientTest
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine($"Kód " + codeString + " je chybně zapsán. Zadejte správný kód!");
+                    Console.WriteLine($"Kód " + Global.gameCode + " je chybně zapsán. Zadejte správný kód!");
                 }
             }
-            return codeString;
+            return Global.gameCode;
         }
-        static public async void JoinGame(ClientWebSocket myWebSocket)
+        static public async Task JoinGame(ClientWebSocket myWebSocket)
         {
 
             dynamic response = await SendAndReceiveAsync(new { action = "joinLobby", gameCode = InputGameCode() }, myWebSocket);
-            Console.WriteLine("Jsme tady");
             if (response.success == 1)
             {
                 Console.WriteLine("You have joined a game!");
+                Global.status = "inLobby";
+                Global.userID = response.userID.ToString();
 
             }
             else if (response.success == 0)
@@ -113,10 +131,34 @@ namespace ClientTest
             jsonString = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
             return JsonConvert.DeserializeObject(jsonString);
         }
-        static public async void CreateLobby(ClientWebSocket myWebSocket)
+        static public async Task CreateLobby(ClientWebSocket myWebSocket)
         {
             dynamic response = await SendAndReceiveAsync(new { action = "createLobby", id = 2 }, myWebSocket);
             Console.WriteLine("GameCode: " + response.gameCode);
+            Global.status = "inLobby";
+            Global.userID = "1";
+            Global.gameCode = response.gameCode;
+        }
+        static public async void LeaveLobby(ClientWebSocket myWebSocket)
+        {
+            dynamic response = await SendAndReceiveAsync(new { action = "leaveLobby", gameCode = Global.gameCode, username = "My_Username", userID = Global.userID }, myWebSocket);
+            if (response.success == "1")
+            {
+                Console.Clear();
+                Console.WriteLine("Opustil jste lobby!");
+                Global.status = "connected";
+            }
+            else
+            {
+                Console.WriteLine("PROBLÉM");
+            }
         }
     }
+    static class Global
+    {
+        public static string status { get; set; }
+        public static string gameCode { get; set; }
+        public static string userID { get; set; }
+    }
 }
+;

@@ -1,0 +1,37 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Klient.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+		Height="1080" Width="1920"
+		xmlns:views="clr-namespace:Klient.Views"
+        x:Class="Klient.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Klient"
+		Content="{Binding Content}"
+	>
+		<!--
+		WindowState="Maximized"
+		Topmost="True"
+		HasSystemDecorations="True"
+		-->
+	<Window.Styles>
+		<Style Selector="Button">
+			<Setter Property="Height" Value="120"/>
+			<Setter Property="Width" Value="400"/>
+			<Setter Property="FontSize" Value="60"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+			<Setter Property="VerticalAlignment" Value="Center"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+		</Style>
+		<Style Selector="Label">
+			<Setter Property="FontSize" Value="60"/>
+			<Setter Property="VerticalContentAlignment" Value="Center"/>
+			<Setter Property="HorizontalContentAlignment" Value="Center"/>
+		</Style>
+	</Window.Styles>
+
+</Window>
