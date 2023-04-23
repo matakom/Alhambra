@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Klient.Models
 {
-    public class Cards
+    public static class Cards
     {
         public static string[] Buildings = new string[4];
         public static string[] Money = new string[4];
@@ -28,13 +28,13 @@ namespace Klient.Models
         }
         public struct user
         {
-            public List<string> Cards;
+            public List<string> Buildings;
+            public List<string> Money;
             public int ID;
             public string Username;
 
-            public user(List<string> cards, int id, string username)
+            public user(int id, string username)
             {
-                Cards = cards;
                 ID = id;
                 Username = username;
             }

@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing.Text;
 using System.Linq;
 using System.Net.WebSockets;
@@ -22,13 +23,19 @@ namespace Klient.Models
             ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[1024]);
             WebSocketReceiveResult result = await Global.WebSocketConnection.ReceiveAsync(buffer, CancellationToken.None);
             string jsonString = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
+            Debug.WriteLine(jsonString);
             return JsonConvert.DeserializeObject(jsonString);
         }
-        static public async void SendAsync(dynamic jsonObject)
+        static public async Task SendAsync(dynamic jsonObject)
         {
             string jsonString = JsonConvert.SerializeObject(jsonObject);
             byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonString);
             await Global.WebSocketConnection.SendAsync(new ArraySegment<byte>(jsonBytes), WebSocketMessageType.Text, false, CancellationToken.None);
         }
+    }
+    public static class Lobby
+    {
+        public static string[] Users = new string[4];
+        //public static Dictionary<string, string> Cards = new Dictionary<string, string>();
     }
 }

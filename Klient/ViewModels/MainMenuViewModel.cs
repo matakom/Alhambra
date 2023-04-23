@@ -39,7 +39,7 @@ namespace Klient.ViewModels
             });
             JoinLobbyCommand = ReactiveCommand.Create(() =>
             {
-                SendAsync(new { action = "joinLobby", gameCode = gameCode, username = Global.Username });
+                Global.SendAsync(new { action = "joinLobby", gameCode = gameCode, username = Global.Username });
             });
         }
 
@@ -48,7 +48,7 @@ namespace Klient.ViewModels
             while (Global.WebSocketConnection.State == WebSocketState.Open && Global.Status == "mainMenu")
             {
 
-                dynamic response = await WaitingForMessage();
+                dynamic response = await Global.WaitingForMessage();
                 
                 if(response.success.ToString() == "0")
                 {
@@ -80,32 +80,20 @@ namespace Klient.ViewModels
                     case "lobbyCreated":
                         Global.GameCode = response.gameCode;
                         Global.ID = 1;
+                        Lobby.Users[0] = Global.Username;
                         Debug.WriteLine("Lobby joined, server accepted");
+                        Global.SendAsync(new { action = "getID", userID = Global.ID });
                         changeContentAction("lobby");
                         break;
                     case "lobbyJoined":
                         Global.GameCode = gameCode;
                         Global.ID = response.userID;
                         Debug.WriteLine("Lobby joined, server accepted");
+                        Global.SendAsync(new { action = "getID", userID = Global.ID });
                         changeContentAction("lobby");
                         break;
                 }
             }
-        }
-        static public async Task<dynamic> WaitingForMessage()
-        {
-            ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[1024]);
-            WebSocketReceiveResult result = await Global.WebSocketConnection.ReceiveAsync(buffer, CancellationToken.None);
-            string jsonString = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
-            Debug.WriteLine(jsonString);
-            dynamic test = JsonConvert.DeserializeObject(jsonString);
-            return test;
-        }
-        static public async void SendAsync(dynamic jsonObject)
-        {
-            string jsonString = JsonConvert.SerializeObject(jsonObject);
-            byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonString);
-            await Global.WebSocketConnection.SendAsync(new ArraySegment<byte>(jsonBytes), WebSocketMessageType.Text, false, CancellationToken.None);
         }
     }
 }

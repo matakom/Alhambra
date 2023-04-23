@@ -19,8 +19,8 @@ namespace Klient.ViewModels
         }
         private async Task InitializeAsync()
         {
-            await ConnectToServer();
             await RandomUsername();
+            await ConnectToServer();
             Content = new MainMenuViewModel(ChangeContent);
 
         }
@@ -49,16 +49,17 @@ namespace Klient.ViewModels
             var endIndex = word.IndexOf("\"]");
             word = word.Substring(startIndex, endIndex - startIndex);
             Global.Username = word;
-            Global.SendAsync(new { action = "getUsername", username = Global.Username });
         }
         static async Task ConnectToServer()
         {
             Uri serverUri = new Uri("ws://localhost:5000");
+            //Uri serverUri = new Uri("ws://192.168.1.111:5000");
 
             Global.WebSocketConnection = new ClientWebSocket();
             try
             {
                 await Global.WebSocketConnection.ConnectAsync(serverUri, CancellationToken.None);
+                await Global.SendAsync(new { action = "GetUsername", username = Global.Username });
             }
             catch (Exception e)
             {

@@ -12,8 +12,8 @@ namespace Klient.Views
         public MainWindow()
         {
             InitializeComponent();
-            Position = new PixelPoint(0, 500);
             /*
+            Position = new PixelPoint(0, 500);
             Topmost = true;
             this.WindowState = WindowState.FullScreen;
             */

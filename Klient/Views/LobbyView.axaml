@@ -13,19 +13,19 @@
 				   Grid.Column="1"
 				   Grid.Row="0"/>
 		</Grid>
-		<Grid ColumnDefinitions="*, Auto, 50, Auto, 50, Auto, 50, Auto, *"
+		<Grid ColumnDefinitions="*, *, *, *, *, *"
 			  RowDefinitions="*, *, Auto, *, Auto">
-			<Label Content="username1"
+			<Label Content="{Binding Users[0]}"
 				   Grid.Column="1"
 				   Grid.Row="2"/>
-			<Label Content="username2"
+			<Label Content="{Binding Users[1]}"
+				   Grid.Column="2"
+				   Grid.Row="2"/>
+			<Label Content="{Binding Users[2]}"
 				   Grid.Column="3"
 				   Grid.Row="2"/>
-			<Label Content="username2"
-				   Grid.Column="5"
-				   Grid.Row="2"/>
-			<Label Content="fhsfdhefhfsdhfdshsfdhsfdh"
-				   Grid.Column="7"
+			<Label Content="{Binding Users[3]}"
+				   Grid.Column="4"
 				   Grid.Row="2"/>
 			<Button Content="Leave lobby"
 					Command="{Binding LeaveLobbyCommand}"
