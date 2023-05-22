@@ -11,12 +11,11 @@ namespace Klient.Views
     {
         public MainWindow()
         {
+            //Topmost = true;
+            Height = 1080;
+            Width = 1920;
+            //this.WindowState = WindowState.Maximized;
             InitializeComponent();
-            /*
-            Position = new PixelPoint(0, 500);
-            Topmost = true;
-            this.WindowState = WindowState.FullScreen;
-            */
         }
     }
 }

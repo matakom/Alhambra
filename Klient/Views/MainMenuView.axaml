@@ -5,6 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
 			 Width="1920" Height="1080"
              x:Class="Klient.Views.MainMenuView">
+
 	<Grid RowDefinitions="*, Auto, Auto, Auto, *"
 		  ColumnDefinitions="*, Auto, *">
 		<Label Content="ALHAMBRA"
@@ -31,7 +32,8 @@
 				 HorizontalContentAlignment="Center"
 				 VerticalContentAlignment="Center"
 				 FontSize="60"
-				 Text="{Binding	gameCode, Mode=TwoWay}"/>
+				 Text="{Binding	gameCode, Mode=TwoWay}"
+				 MaxLength="6"/>
 		<Label Content="{Binding ErrorText, Mode=TwoWay}"
 			   Grid.Row="4"
 			   Grid.Column="1"

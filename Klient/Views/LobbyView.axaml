@@ -3,15 +3,20 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+			 Width="1920" Height="1080"
              x:Class="Klient.Views.LobbyView">
 	<Panel>
 		<Grid ColumnDefinitions="*, Auto, *"
-			  RowDefinitions="600, 1320">
+			  RowDefinitions="300, 1320">
 			<Label Content="{Binding GameCode}"
 				   FontSize="120"
 				   Margin="0, 0, 0, 100"
 				   Grid.Column="1"
 				   Grid.Row="0"/>
+			<Label Content="{Binding ErrorText}"
+				   Grid.Row="0"
+				   Grid.Column="1"
+				   Margin="0, 150, 0, 0"/>
 		</Grid>
 		<Grid ColumnDefinitions="*, *, *, *, *, *"
 			  RowDefinitions="*, *, Auto, *, Auto">
@@ -31,6 +36,10 @@
 					Command="{Binding LeaveLobbyCommand}"
 					Grid.Column="0"
 					Grid.Row="4"/>
+			<Button Content="Start game!"
+					Command="{Binding StartGameCommand}"
+					Grid.Row="4"
+					Grid.Column="5"/>
 		</Grid>
 	</Panel>
 </UserControl>

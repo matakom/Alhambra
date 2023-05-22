@@ -25,12 +25,13 @@ namespace Server
         public void AddUserToLobby(string user)
         {
             users.Add(user);
-            Program.SendToAllAsync(new { action = "updatePlayers", users = users}, users = users);
+            Program.SendToAllAsync(new { action = "updatePlayers", users = users, success = "1"}, users = users);
         }
         public void RemoveUserFromLobby(string user)
         {
             users.Remove(user);
-            Program.SendToAllAsync(new { action = "updatePlayers", users = users }, users = users);
+            Program.SendToAllAsync(new { action = "updatePlayers", users = users, success = "1" }, users = users);
         }
+
     }
 }

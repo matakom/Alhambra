@@ -14,6 +14,9 @@ using System.Data.SqlClient;
 using DotNetEnv;
 using MySqlConnector;
 using System.Net.Http;
+using System.IO;
+using static Server.games;
+using System.Numerics;
 
 namespace Server
 {
@@ -23,14 +26,17 @@ namespace Server
         public static Queue<dynamic> queue = new Queue<dynamic>();
         public static MySqlConnection databaseConnection;
         public static Dictionary<string, lobby> Lobby = new Dictionary<string, lobby>();
+        public static Dictionary<string, games> Games = new Dictionary<string, games>();
         static void Main(string[] args)
         {
+
             databaseConnection = StartDatabase();
 
-            Thread DoTasks = new Thread(Program.DoTasks);
-            DoTasks.Start();
+            Thread ConnectUsers = new Thread(Program.ConnectUsers);
+            ConnectUsers.Start();
 
-            ConnectUsers();
+            DoTasks();
+
         }
         static async void DoTasks()
         {
@@ -53,23 +59,15 @@ namespace Server
                     break;
                 case "joinLobby":
                     JoinLobby(response);
-                    //----------------------------------------------------------------------------------
-                    //Add connections from lobby to lobbyConnection
-                    /*
-                    List<string> users = UsersInLobby(response.gameCode.ToString(), databaseConnection);
-                    foreach (string usernameFromList in users)
-                    {
-                        if (!LobbyConnection.ContainsKey(usernameFromList))
-                        {
-                            LobbyConnection.Add(usernameFromList, AllConnection[usernameFromList]);
-                        }
-                    }
-                    await SendToAllAsync(new { users = users, numberOfUsers = users.Count, action = "morePlayersInLobby" }, LobbyConnection);
-                    //----------------------------------------------------------------------------------
-                    */
                     break;
                 case "leaveLobby":
                     LeaveLobby(response);
+                    break;
+                case "startGame":
+                    StartGame(response);
+                    break;
+                case "getUsernameAndIDForStartingGame":
+                    InitializeGame(response);
                     break;
                 case "crashedClient":
                     Console.WriteLine(response.username.ToString() + " crashed :(");
@@ -107,6 +105,7 @@ namespace Server
             ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[1024]);
             WebSocketReceiveResult result = await serverWebSocket.ReceiveAsync(buffer, CancellationToken.None);
             string jsonString = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
+            Console.WriteLine(jsonString);
             dynamic response = JsonConvert.DeserializeObject(jsonString);
             AllConnection.Add(response.username.ToString(), serverWebSocket);
 
@@ -139,6 +138,109 @@ namespace Server
                 queue.Enqueue(new { action = "crashedClient", username = responsePreviusMethod.username.ToString(), userID = ID });
             }
             return ID;
+        }
+        static public void StartGame(dynamic response)
+        {
+            if (response.userID.ToString() != "1")
+            {
+                SendAsync(new { success = 0, message = "notALobbyLeader" }, AllConnection[response.username.ToString()]);
+                return;
+            }
+            if (UsersInLobby(response.gameCode.ToString()).Count < 2)
+            {
+                SendAsync(new { success = 0, message = "onlyOnePlayer" }, AllConnection[response.username.ToString()]);
+                return;
+            }
+
+            int numberOfUsersInLobby = UsersInLobby(response.gameCode.ToString()).Count;
+
+            Games.Add(response.gameCode.ToString(), new games());
+
+            Games[response.gameCode.ToString()].NumberOfPlayers = numberOfUsersInLobby;
+
+            SendToAllAsync(new { action = "gameStarted", success = "1" }, Lobby[response.gameCode.ToString()].users);
+
+            Lobby.Remove(response.gameCode.ToString());
+        }
+        static public void InitializeGame(dynamic response)
+        {
+            Games[response.gameCode.ToString()].AddUser(Convert.ToInt16(response.userID), response.username.ToString());
+            if (Games[response.gameCode.ToString()].Users.Count == Games[response.gameCode.ToString()].NumberOfPlayers)
+            {
+                SendToAllAsync(new { action = "allPlayersIn", success = "1" }, UsersInLobby(response.gameCode.ToString()));
+                RandomizeCards(response);
+                //Draw cards to table
+                for (int i = 0; i < 4; i++)
+                {
+                    Games[response.gameCode.ToString()].MoneyOnTable[i] = Games[response.gameCode.ToString()].DrawMoneyCard();
+                    Games[response.gameCode.ToString()].BuildingsOnTable[i] = Games[response.gameCode.ToString()].DrawBuildingCard();
+                }
+                //Draw money to players
+                for(int i = 0; i < Games[response.gameCode.ToString()].NumberOfPlayers; i++)
+                {
+                    int sum = 0;
+                    while(sum < 20)
+                    {
+                        Money card = Games[response.gameCode.ToString()].DrawMoneyCard();
+                        Games[response.gameCode.ToString()].Users[i].Money.Add(card);
+                        sum += card.value;
+                    }
+                }
+                SendToAllAsync(new { action = "prepareGame", success = "1",
+                                     moneyOfPlayers = Games[response.gameCode.ToString()].Users, 
+                                     moneyCards = Games[response.gameCode.ToString()].MoneyOnTable,
+                                     buildingCards = Games[response.gameCode.ToString()].BuildingsOnTable,
+                                     usersInGame = Games[response.gameCode.ToString()].Users }, UsersInLobby(response.gameCode.ToString()));
+            }
+        }
+        static public void RandomizeCards(dynamic response)
+        {
+            using (StreamReader reader = new StreamReader(@"../../../Assets/moneyCards.txt"))
+            {
+                while (!reader.EndOfStream)
+                {
+                    string line = reader.ReadLine();
+                    if (!string.IsNullOrEmpty(line))
+                    {
+                        line = line.Trim();
+                        Games[response.gameCode.ToString()].DeckOfMoney.Add(new Money(line, $@"/Assets/{line}.png", Convert.ToInt16(Convert.ToString(line[2])), Convert.ToString(line[0]) + Convert.ToString(line[1]), false));
+                    }
+                }
+            }
+            Shuffle(Games[response.gameCode.ToString()].DeckOfMoney);
+
+            using (StreamReader reader = new StreamReader(@"../../../Assets/buildingCards.txt"))
+            {
+                while (!reader.EndOfStream)
+                {
+                    string line = reader.ReadLine();
+                    if (!string.IsNullOrEmpty(line))
+                    {
+                        line = line.Trim();
+                        Games[response.gameCode.ToString()].DeckOfBuildings.Add(new Buildings(line, $@"/Assets/{line}.png", Convert.ToInt16(Convert.ToString(line[1]) + Convert.ToString(line[2])), Convert.ToInt16(Convert.ToString(line[0]))));
+                    }
+                }
+            }
+            Shuffle(Games[response.gameCode.ToString()].DeckOfBuildings);
+
+            int indexOfA = new Random().Next(33, 54);
+            int indexOfB = new Random().Next(76, 97);
+
+            Games[response.gameCode.ToString()].DeckOfMoney.Insert(indexOfA, new Money("a", $@"/Assets/a.png", -1, "-1", true));
+            Games[response.gameCode.ToString()].DeckOfMoney.Insert(indexOfB, new Money("b", $@"/Assets/b.png", -1, "-1", true));
+        }
+        static void Shuffle<T>(List<T> list)
+        {
+            Random random = new Random();
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = random.Next(n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
         }
         static public string GenerateGameCode()
         {
@@ -253,7 +355,7 @@ namespace Server
 
             await SendAsync(new { users = Lobby[response.gameCode.ToString()].users, success = 1, userID = ID, action = "lobbyJoined" }, AllConnection[response.username.ToString()]);
 
-            await SendToAllAsync(new { action = "updatePlayers", users = Lobby[response.gameCode.ToString()].users }, Lobby[response.gameCode.ToString()].users);
+            await SendToAllAsync(new { action = "updatePlayers", users = Lobby[response.gameCode.ToString()].users, success = "1" }, Lobby[response.gameCode.ToString()].users);
         }
         static public async Task LeaveLobby(dynamic response)
         {
@@ -268,13 +370,13 @@ namespace Server
             }
 
             Lobby[response.gameCode.ToString()].users.Remove(response.username.ToString());
-            if(Lobby[response.gameCode.ToString()].users.Count == 0)
+            if (Lobby[response.gameCode.ToString()].users.Count == 0)
             {
                 Lobby.Remove(response.gameCode.ToString());
             }
             else
             {
-                await SendToAllAsync(new { action = "updatePlayers", users = Lobby[response.gameCode.ToString()].users }, Lobby[response.gameCode.ToString()].users);
+                await SendToAllAsync(new { action = "updatePlayers", users = Lobby[response.gameCode.ToString()].users, success = "1" }, Lobby[response.gameCode.ToString()].users);
             }
 
             await SendAsync(new { success = "1", action = "lobbyLeft" }, AllConnection[response.username.ToString()]);
@@ -444,14 +546,36 @@ namespace Server
             }
 
             //leave lobby object
-            Lobby[gameCode].users.Remove(response.username.ToString());
-            if (Lobby[gameCode].users.Count == 0)
+            if (Lobby.ContainsKey(gameCode))
             {
-                Lobby.Remove(gameCode);
+                if (Lobby[gameCode].users.Contains(response.username.ToString()))
+                {
+                    Lobby[gameCode].users.Remove(response.username.ToString());
+                    if (Lobby[gameCode].users.Count == 0)
+                    {
+                        Lobby.Remove(gameCode);
+                    }
+                    else
+                    {
+                        await SendToAllAsync(new { action = "updatePlayers", users = Lobby[gameCode].users, success = "1" }, Lobby[gameCode].users);
+                    }
+                }
+                return;
             }
-            else
+            if (Games.ContainsKey(gameCode))
             {
-                await SendToAllAsync(new { action = "updatePlayers", users = Lobby[gameCode].users }, Lobby[gameCode].users);
+                if (Games[gameCode].Users.Contains(new User { Username = response.username.ToString() }))
+                {
+                    Games[gameCode].Users.Remove(response.username.ToString());
+                    if (Games[gameCode].Users.Count == 0)
+                    {
+                        Games.Remove(gameCode);
+                    }
+                    else
+                    {
+                        await SendToAllAsync(new { action = "updatePlayers", users = Games[gameCode].Users, success = "1" }, Lobby[gameCode].users);
+                    }
+                }
             }
         }
     }

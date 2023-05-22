@@ -22,7 +22,6 @@ namespace Klient.ViewModels
             await RandomUsername();
             await ConnectToServer();
             Content = new MainMenuViewModel(ChangeContent);
-
         }
         public ViewModelBase Content
         {
@@ -38,6 +37,11 @@ namespace Klient.ViewModels
             else if(viewModelName == "mainMenu")
             {
                 Content = new MainMenuViewModel(ChangeContent);
+            }
+            else if (viewModelName == "game")
+            {
+                Content = new GameViewModel(ChangeContent);
+                Debug.WriteLine(Content);
             }
         }
         static async Task RandomUsername()

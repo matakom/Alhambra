@@ -13,14 +13,14 @@ namespace Klient.Models
 {
     public class Global
     {
-        public static string? GameCode { get; set; }
-        public static string? Username { get; set; }
-        public static ClientWebSocket? WebSocketConnection { get; set; }
-        public static string? Status { get; set; }
-        public static int? ID { get; set; }
+        public static string GameCode { get; set; }
+        public static string Username { get; set; }
+        public static ClientWebSocket WebSocketConnection { get; set; }
+        public static string Status { get; set; }
+        public static int ID { get; set; }
         static public async Task<dynamic> WaitingForMessage()
         {
-            ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[1024]);
+            ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[10240]);
             WebSocketReceiveResult result = await Global.WebSocketConnection.ReceiveAsync(buffer, CancellationToken.None);
             string jsonString = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
             Debug.WriteLine(jsonString);
@@ -30,6 +30,7 @@ namespace Klient.Models
         {
             string jsonString = JsonConvert.SerializeObject(jsonObject);
             byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonString);
+            Debug.WriteLine(jsonString);
             await Global.WebSocketConnection.SendAsync(new ArraySegment<byte>(jsonBytes), WebSocketMessageType.Text, false, CancellationToken.None);
         }
     }

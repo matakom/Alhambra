@@ -1,0 +1,112 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+			 Width="1920" Height="1080"
+             x:Class="Klient.Views.GameView">
+	<Canvas>
+		<Border Name="ME"
+				Classes="name"
+				Canvas.Bottom="0"
+				Canvas.Left="1520">
+			<Label Content="{Binding Bottom}"
+				   FontSize="30"
+				   HorizontalContentAlignment="Center"
+				   VerticalContentAlignment="Center"
+				   VerticalAlignment="Top"
+				   Margin="0,30,0,0"/>
+		</Border>
+		<Border Name="LEFT"
+				Classes="name"
+				Canvas.Bottom="0"
+				Canvas.Left="0">
+			<Label Content="{Binding Left}"
+				   FontSize="30"
+				   HorizontalContentAlignment="Center"
+				   VerticalContentAlignment="Center"
+				   VerticalAlignment="Top"
+				   Margin="0,30,0,0"/>
+		</Border>
+		<Border Name="TOP"
+				Classes="name"
+				Canvas.Bottom="830"
+				Canvas.Left="0">
+			<Label Content="{Binding Top}"
+				   FontSize="30"
+				   HorizontalContentAlignment="Center"
+				   VerticalContentAlignment="Center"
+				   VerticalAlignment="Top"
+				   Margin="0,30,0,0"/>
+		</Border>
+		<Border Name="RIGHT"
+				Classes="name"
+				Canvas.Bottom="830"
+				Canvas.Left="1520">
+			<Label Content="{Binding Right}"
+				   FontSize="30"
+				   HorizontalContentAlignment="Center"
+				   VerticalContentAlignment="Center"
+				   VerticalAlignment="Top"
+				   Margin="0,30,0,0"/>
+		</Border>
+		<Image Classes="card"
+			   Name="DeckOfMoney"
+			   Source="/Assets/money.png"
+			   Canvas.Left="550"
+			   Canvas.Bottom="620"/>
+		<Image Classes="card"
+			   Name="FirstCardOfMoney"
+			   Source="{Binding	MoneyOnTable[0]}"
+			   Canvas.Left="710"
+			   Canvas.Bottom="620"/>
+		<Image Classes="card"
+			   Name="SecondCardOfMoney"
+			   Source="{Binding	MoneyOnTable[1]}"
+			   Canvas.Left="845"
+			   Canvas.Bottom="620"/>
+		<Image Classes="card"
+			   Name="ThirdCardOfMoney"
+			   Source="{Binding	MoneyOnTable[2]}"
+			   Canvas.Left="980"
+			   Canvas.Bottom="620"/>
+		<Image Classes="card"
+			   Name="FourthCardOfMoney"
+			   Source="{Binding	MoneyOnTable[3]}"
+			   Canvas.Left="1115"
+			   Canvas.Bottom="620"/>
+
+		<Image Classes="card"
+			   Name="DeckOfBuildings"
+			   Source="/Assets/building.png"
+			   Canvas.Left="550"
+			   Canvas.Bottom="410"/>
+		<Image Classes="card"
+			   Name="FirstBuilding"
+			   Source="{Binding	BuildingsOnTable[0]}"
+			   Canvas.Left="710"
+			   Canvas.Bottom="410"/>
+		<Image Classes="card"
+			   Name="SecondBuilding"
+			   Source="{Binding	BuildingsOnTable[1]}"
+			   Canvas.Left="845"
+			   Canvas.Bottom="410"/>
+		<Image Classes="card"
+			   Name="ThirdBuilding"
+			   Source="{Binding	BuildingsOnTable[2]}"
+			   Canvas.Left="980"
+			   Canvas.Bottom="410"/>
+		<Image Classes="card"
+			   Name="FourthBuilding"
+			   Source="{Binding	BuildingsOnTable[3]}"
+			   Canvas.Left="1115"
+			   Canvas.Bottom="410"/>
+		<Image Name="SlotsForMoney"
+			   Source="/Assets/barvyBudov.png"
+			   Height="150"
+			   Canvas.Bottom="270"
+			   Canvas.Left="700"/>
+		<ItemsControl Items="{Binding BottomCards}" >
+		</ItemsControl>
+	</Canvas>
+</UserControl>

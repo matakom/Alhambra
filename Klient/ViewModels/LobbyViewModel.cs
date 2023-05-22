@@ -21,10 +21,17 @@ namespace Klient.ViewModels
     public class LobbyViewModel : ViewModelBase
     {
         public ReactiveCommand<Unit, Unit> LeaveLobbyCommand { get; }
+        public ReactiveCommand<Unit, Unit> StartGameCommand { get; }
         private Action<string> changeContentAction;
         string gameCode = "Generating lobby";
         //string[] users = { "", "", "", "" };
         private ObservableCollection<string> users = new ObservableCollection<string>(new[] { "", "", "", "" });
+        string? errorText;
+        public string ErrorText
+        {
+            get => errorText;
+            set => this.RaiseAndSetIfChanged(ref errorText, value);
+        }
         public string GameCode
         {
             get => gameCode;
@@ -46,6 +53,11 @@ namespace Klient.ViewModels
             {
                 Global.SendAsync(new { action = "leaveLobby", gameCode = Global.GameCode, username = Global.Username, userID = Global.ID });
             });
+            StartGameCommand = ReactiveCommand.Create(() =>
+            {
+                Global.SendAsync(new { action = "startGame", gameCode = Global.GameCode, username = Global.Username, userID = Global.ID });
+            });
+
         }
         public async void UpdatePlayers(dynamic response)
         {
@@ -53,6 +65,10 @@ namespace Klient.ViewModels
             {
                 Lobby.Users[i] = response.users[i].ToString();
                 Users[i] = response.users[i].ToString();
+                if (Lobby.Users[i] == Global.Username)
+                {
+                    Global.ID = i + 1;
+                }
                 Debug.WriteLine(Users[i] + " - " + i);
             }
             for(int i = 3; i > response.users.Count - 1; i--)
@@ -68,6 +84,21 @@ namespace Klient.ViewModels
 
                 dynamic response = await Global.WaitingForMessage();
 
+                if(response.success.ToString() == "0")
+                {
+                    switch (((dynamic)response).message.ToString())
+                    {
+                        case "notALobbyLeader":
+                            Debug.WriteLine("You are not a lobby leader!");
+                            ErrorText = "You are not a lobby leader!";
+                            break;
+                        case "onlyOnePlayer":
+                            Debug.WriteLine("You need two or more players!");
+                            ErrorText = "You need two or more players!";
+                            break;
+                    }
+                    continue;
+                }
                 switch (((dynamic)response).action.ToString())
                 {
                     case "lobbyLeft":
@@ -76,7 +107,9 @@ namespace Klient.ViewModels
                         break;
                     case "updatePlayers":
                         UpdatePlayers(response);
-                        //Global.SendAsync(new { action = "UpdatePlayers", users = response.users, userID = Global.ID});
+                        break;
+                    case "gameStarted":
+                        changeContentAction("game");
                         break;
                 }
             }
