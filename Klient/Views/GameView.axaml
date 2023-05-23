@@ -106,7 +106,12 @@
 			   Height="150"
 			   Canvas.Bottom="270"
 			   Canvas.Left="700"/>
-		<ItemsControl Items="{Binding BottomCards}" >
+		
+		<ItemsControl Items="{Binding BottomCards}">
+			
 		</ItemsControl>
+		
+		<ItemsControl Items="{Binding TopCards}"/>
+
 	</Canvas>
 </UserControl>

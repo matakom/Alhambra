@@ -16,6 +16,9 @@ using Avalonia;
 using System.Runtime.Intrinsics;
 using Avalonia.Animation.Animators;
 using Microsoft.CodeAnalysis.Operations;
+using DynamicData;
+using Avalonia.Controls.Templates;
+using System.Threading;
 
 namespace Klient.ViewModels
 {
@@ -59,20 +62,21 @@ namespace Klient.ViewModels
             get => right;
             set => this.RaiseAndSetIfChanged(ref right, value);
         }
-        /*
-        private ObservableCollection<Card> bottomCards = new ObservableCollection<Card>();
-        public ObservableCollection<Card> BottomCards
+
+        private ObservableCollection<Image> bottomCards = new ObservableCollection<Image>();
+        public ObservableCollection<Image> BottomCards
         {
             get => bottomCards;
             set => this.RaiseAndSetIfChanged(ref bottomCards, value);
         }
-        */
-        private ObservableCollection<MyImage> bottomCards = new ObservableCollection<MyImage>();
-        public ObservableCollection<MyImage> BottomCards
+        private ObservableCollection<Image> topCards = new ObservableCollection<Image>();
+        private ObservableCollection<Image> TopCards
         {
-            get => bottomCards;
-            set => this.RaiseAndSetIfChanged(ref bottomCards, value);
+            get => topCards;
+            set => this.RaiseAndSetIfChanged(ref topCards, value);
         }
+
+
         public GameViewModel(Action<string> changeContentAction)
         {
             Global.Status = "game";
@@ -159,35 +163,91 @@ namespace Klient.ViewModels
                 BuildingsOnTable.Add(new Avalonia.Media.Imaging.Bitmap("../../.." + response.buildingCards[i].path.ToString()));
             }
             
+            DrawCardsToUser("bottom", true, 0);
+            DrawCardsToUser("top", true, 0);
 
-
-
-            int numOfCards = Cards.Users.First(obj => obj.Username == Global.Username).Money.Count;
-            List<Vector2> coordinates = await CalculatePosition(numOfCards, "bottom");
-            List<Image> bottomCards = new List<Image>();
+        }
+        public async void DrawCardsToUser(string side, bool trueForMoney, int slot)
+        {
+            int numOfCards = Cards.Users[usersNames[side] - 1].Money.Count;
+            List<Vector2> coordinates = await CalculatePosition(numOfCards, side);
 
             for (int i = 0; i < numOfCards; i++)
             {
-                string path = @$"../../../Assets/{Cards.Users.First(obj => obj.Username == Global.Username).Money[i].name}.png";
-                Bitmap bitmap = new Bitmap(path);
-
-                MyImage image = new MyImage();
-                image.Source = bitmap;
-                image.Height = 160;
-                int Yshift;
-                if(i == 0)
+                string path = "";
+                if(side == "bottom")
                 {
-                    Yshift = 850;
+                    path = @$"../../../Assets/{Cards.Users[usersNames[side] - 1].Money[i].name}.png";
                 }
                 else
                 {
-                    Yshift = -i * (160 / (i));
+                    path = @"../../../Assets/money.png";
+                }
+                Bitmap bitmap = new Bitmap(path);
+
+                int marginForBottom;
+
+                if (i == 0)
+                {
+                    marginForBottom = 920;
+                }
+                else
+                {
+                    marginForBottom = -160;
+                }
+
+                Image image = new Image();
+                image.Source = bitmap;
+                image.Height = 160;
+
+                int Yshift = 0;
+                if (i == 0)
+                {
+                    if(side == "bottom")
+                    {
+                        Yshift = marginForBottom - 70;
+                    }
+                    else if(side == "top")
+                    {
+                        Yshift = marginForBottom - 850;
+                    }
+                }
+                else
+                {
+                    Yshift = -160;
                 }
                 int Xshift = (Convert.ToInt16(coordinates[i].X) - (numOfCards - 1 - i) * 85) - 50;
                 image.Margin = Avalonia.Thickness.Parse($"{Xshift},{Yshift},0,0");
 
-                BottomCards.Add(image);
-                //BottomCards.Add(new Card(coordinates[i].X, coordinates[i].Y, path));
+                int fromX = 550;
+                if(slot != 0)
+                {
+                    fromX += 160 + slot * 135;
+                }
+                int fromY = 0;
+                if (trueForMoney)
+                {
+                    fromY = marginForBottom - 410;
+                }
+
+
+                /*
+                Thread myThread = new Thread(new ParameterizedThreadStart((obj) =>
+                {
+                    Move(new Vector2(fromX, fromY), new Vector2(Xshift, Yshift), 10, image);
+                }));
+                myThread.Start();
+                */
+                Move(new Vector2(fromX, fromY), new Vector2(Xshift, Yshift), 3, image);
+
+                if (side == "bottom")
+                {
+                    BottomCards.Add(image);
+                }
+                else if(side == "top")
+                {
+                    TopCards.Add(image);
+                }
             }
         }
         public async void ProcessUser()
@@ -231,8 +291,9 @@ namespace Klient.ViewModels
 
             for (int i = 0; i < numberOfFrames; i++)
             {
-                Canvas.SetLeft(image, from.X + i * shiftX);
-                Canvas.SetBottom(image, from.Y + i * shiftY);
+                int XCoords = Convert.ToInt16(from.X + i * shiftX);
+                int YCoords = Convert.ToInt16(from.Y + i * shiftY);
+                image.Margin = Avalonia.Thickness.Parse($"{XCoords},{YCoords},0,0");
                 await Task.Delay(Convert.ToInt32(Math.Round((1000 / fps) / 11 * 6)));
             }
         }
