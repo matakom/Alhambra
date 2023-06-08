@@ -20,7 +20,7 @@ namespace Klient.Models
         public static int ID { get; set; }
         static public async Task<dynamic> WaitingForMessage()
         {
-            ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[10240]);
+            ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[64000]);
             WebSocketReceiveResult result = await Global.WebSocketConnection.ReceiveAsync(buffer, CancellationToken.None);
             string jsonString = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
             Debug.WriteLine(jsonString);

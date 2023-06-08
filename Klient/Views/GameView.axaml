@@ -5,7 +5,8 @@
              mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
 			 Width="1920" Height="1080"
              x:Class="Klient.Views.GameView">
-	<Canvas>
+
+	<Canvas x:Name="Canvas">
 		<Border Name="ME"
 				Classes="name"
 				Canvas.Bottom="0"
@@ -106,12 +107,27 @@
 			   Height="150"
 			   Canvas.Bottom="270"
 			   Canvas.Left="700"/>
-		
+
 		<ItemsControl Items="{Binding BottomCards}">
 			
+
 		</ItemsControl>
-		
-		<ItemsControl Items="{Binding TopCards}"/>
+
+		<ItemsControl Items="{Binding TopCards}">
+
+
+		</ItemsControl>		
+		<!--
+		<ItemsRepeater Items="{Binding TopCards}">
+			<ItemsRepeater.ItemTemplate>
+				<DataTemplate>
+					<Image Source="avares://Klient/Assets/102.png"
+							Margin="{Binding Margin}"
+							Height="160"/>
+				</DataTemplate>
+			</ItemsRepeater.ItemTemplate>
+		</ItemsRepeater>
+		-->
 
 	</Canvas>
 </UserControl>

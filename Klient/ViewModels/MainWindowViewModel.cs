@@ -3,6 +3,7 @@ using ReactiveUI;
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Net.Http;
 using System.Net.WebSockets;
 using System.Threading;
@@ -30,18 +31,51 @@ namespace Klient.ViewModels
         }
         private void ChangeContent(string viewModelName)
         {
-            if(viewModelName == "lobby")
+            try
             {
-                Content = new LobbyViewModel(ChangeContent);
+
+                if (viewModelName == "lobby")
+                {
+                    Content = new LobbyViewModel(ChangeContent);
+                }
+                else if (viewModelName == "mainMenu")
+                {
+                    Content = new MainMenuViewModel(ChangeContent);
+                }
+                else if (viewModelName == "game")
+                {
+                    Content = new GameViewModel(ChangeContent);
+                    Debug.WriteLine(Content);
+                }
             }
-            else if(viewModelName == "mainMenu")
+            catch (Exception ex)
             {
-                Content = new MainMenuViewModel(ChangeContent);
-            }
-            else if (viewModelName == "game")
-            {
-                Content = new GameViewModel(ChangeContent);
-                Debug.WriteLine(Content);
+                // Získání informací o chybě
+                string errorMessage = ex.Message;
+                string stackTrace = ex.StackTrace;
+
+                // Zápis chyby do souboru
+                string logFilePath = "";
+                if(Global.ID != null)
+                {
+                    logFilePath = $"../../../.logs/errorlog{Global.ID}.txt"; // Cesta k souboru logu
+                }
+                else
+                {
+                    logFilePath = "errorlog.txt";
+                }
+
+                using (StreamWriter writer = new StreamWriter(logFilePath, true))
+                {
+                    if (Global.ID != null)
+                    {
+                        writer.WriteLine("ID: " + Global.ID);
+                    }
+                    writer.WriteLine("Datum a čas: " + DateTime.Now);
+                    writer.WriteLine("Chybová zpráva: " + errorMessage);
+                    writer.WriteLine("Stack trace: " + stackTrace);
+                    writer.WriteLine("--------");
+                }
             }
         }
         static async Task RandomUsername()

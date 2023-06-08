@@ -69,6 +69,12 @@ namespace Server
                 case "getUsernameAndIDForStartingGame":
                     InitializeGame(response);
                     break;
+                case "pickCards":
+                    PickCard(response);
+                    break;
+                case "pickBuilding":
+                    PickBuilding(response);
+                    break;
                 case "crashedClient":
                     Console.WriteLine(response.username.ToString() + " crashed :(");
                     DeleteClient(response);
@@ -139,9 +145,191 @@ namespace Server
             }
             return ID;
         }
+        static public async void PickCard(dynamic response)
+        {
+            // check if it's players round
+            if (Convert.ToInt16(response.userID) != Games[response.gameCode.ToString()].PlayingUser)
+            {
+                SendToAllAsync(new { success = 0, message = "notThePlayersRound", ID = response.userID }, UsersInLobby(response.gameCode.ToString()));
+                return;
+            }
+
+            // check if the card fits with user info
+            for (int i = 0; i < response.cardName.Count; i++)
+            {
+                if(response.cardName[i] != Games[response.gameCode.ToString()].MoneyOnTable[Convert.ToInt16(response.slot[i])].name)
+                {
+                    SendToAllAsync(new {success = 0, message = "cardIsNotRight", ID = response.userID}, UsersInLobby(response.gameCode.ToString()));
+                    return;
+                }
+            }
+
+            // check if money if of max 5
+            if(response.cardName.Count > 1)
+            {
+                int allValues = 0;
+
+                for(int i = 0; i < response.cardName.Count; i++)
+                {
+                    int value = Convert.ToInt16(response.cardName[i].ToString().Substring(2, 1));
+                    allValues += value;
+                }
+                if(allValues > 6)
+                {
+                    SendToAllAsync(new { success = 0, message = "valueOfCardsIsToHigh", ID = response.userID }, UsersInLobby(response.gameCode.ToString()));
+                    return;
+                }
+
+            }
+
+            // add card to the user
+            for(int i = 0; i < Games[response.gameCode.ToString()].Users.Count; i++)
+            {
+                if (Games[response.gameCode.ToString()].Users[i].Username == response.username.ToString())
+                {
+                    for(int j = 0; j < response.slot.Count; j++)
+                    {
+                        Games[response.gameCode.ToString()].Users[i].Money.Add(Games[response.gameCode.ToString()].MoneyOnTable[Convert.ToInt16(response.slot[j])]);
+                    }
+                    break;
+                }
+            }
+
+            // draw card from deck
+            for (int j = 0; j < response.slot.Count; j++)
+            {
+                Games[response.gameCode.ToString()].MoneyOnTable[Convert.ToInt16(response.slot[j])] = Games[response.gameCode.ToString()].DrawMoneyCard();
+            }
+
+            // next turn
+            Games[response.gameCode.ToString()].NextPlayer();
+
+            // send info
+            SendToAllAsync(new { success = 1, action = "moneyCardTaken", MoneyOnTable = Games[response.gameCode.ToString()].MoneyOnTable, TakenCards = response.slot, ID = response.ID, Game = Games[response.gameCode.ToString()] }, UsersInLobby(response.gameCode.ToString()));
+        }
+        static public async void PickBuilding(dynamic response)
+        {
+            // check if player is playing
+            if(Convert.ToInt16(response.userID) != Games[response.gameCode.ToString()].PlayingUser)
+            {
+                SendToAllAsync(new { success = 0, message = "notThePlayersRound", ID = response.userID }, UsersInLobby(response.gameCode.ToString()));
+                return;
+            }
+
+
+            // check if building are right
+            for (int i = 0; i < response.cardName.Count; i++)
+            {
+                if (response.cardName[i] != Games[response.gameCode.ToString()].BuildingsOnTable[Convert.ToInt16(response.slot[i])].name)
+                {
+                    SendToAllAsync(new { success = 0, message = "buildingCardIsNotRight", ID = response.userID }, UsersInLobby(response.gameCode.ToString()));
+                    return;
+                }
+            }
+
+            // get id of user
+            int indexOfUser = -1;
+            for (int i = 0; i < Games[response.gameCode.ToString()].Users.Count; i++)
+            {
+                if (Games[response.gameCode.ToString()].Users[i].Username == response.username.ToString())
+                {
+                    indexOfUser = i;
+                }
+            }
+
+            // check if money is same type
+            string color = response.moneyCardsType[0].ToString();
+            for(int i = 0; i < response.moneyCardsType.Count; i++)
+            {
+                if (response.moneyCardsType[i].ToString() != color)
+                {
+                    SendToAllAsync(new { success = 0, message = "moneyIsNotSameColor", ID = response.ID }, UsersInLobby(response.gameCode.ToString()));
+                    return;
+                }
+            }
+
+            // check if money is right color
+            if (response.slot[0] == 0)
+            {
+                if (response.moneyCardsType[0].ToString() != "yellow")
+                {
+                    SendToAllAsync(new { success = 0, message = "moneyIsNotRightColor", ID = response.userID }, UsersInLobby(response.gameCode.ToString()));
+                    return;
+                }
+            }
+            else if (response.slot[0] == 1)
+            {
+                if (response.moneyCardsType[0].ToString() != "blue")
+                {
+                    SendToAllAsync(new { success = 0, message = "moneyIsNotRightColor", ID = response.userID }, UsersInLobby(response.gameCode.ToString()));
+                    return;
+                }
+            }
+            else if (response.slot[0] == 2)
+            {
+                if (response.moneyCardsType[0].ToString() != "green")
+                {
+                    SendToAllAsync(new { success = 0, message = "moneyIsNotRightColor", ID = response.userID }, UsersInLobby(response.gameCode.ToString()));
+                    return;
+                }
+            }
+            else if (response.slot[0] == 3)
+            {
+                if (response.moneyCardsType[0].ToString() != "brown")
+                {
+                    SendToAllAsync(new { success = 0, message = "moneyIsNotRightColor", ID = response.userID }, UsersInLobby(response.gameCode.ToString()));
+                    return;
+                }
+            }
+            else
+            {
+                Console.WriteLine("\n\n\n\nBIG PROBLEM");
+            }
+
+            // check if money is enough
+            int value = 0;
+            for(int i = 0; i < response.moneyCardsValue.Count; i++)
+            {
+                value += Convert.ToInt16(response.moneyCardsValue[i]);
+            }
+            if(value < Convert.ToInt16(response.price))
+            {
+                SendToAllAsync(new { success = 0, message = "moneyIsNotEnough", ID = response.userID }, UsersInLobby(response.gameCode.ToString()));
+                return;
+            }
+            else if (value != Convert.ToInt16(response.price))
+            {
+                Games[response.gameCode.ToString()].NextPlayer();
+            }
+
+            // add building to user
+            Games[response.gameCode.ToString()].Users[indexOfUser].Buildings.Add(Games[response.gameCode.ToString()].BuildingsOnTable[Convert.ToInt16(response.slot[0])]);
+
+            // remove money cards from user
+            List<Money> money = (Games[response.gameCode.ToString()].Users[indexOfUser].Money);
+
+            for (int i = 0; i < Games[response.gameCode.ToString()].Users[indexOfUser].Money.Count; i++)
+            {
+                for(int j = 0; j < response.moneyCardsName.Count; j++)
+                {
+                    if(Games[response.gameCode.ToString()].Users[indexOfUser].Money[i].name == money[j].name)
+                    {
+                        money.RemoveAt(j);
+                        Games[response.gameCode.ToString()].Users[indexOfUser].Money.RemoveAt(i);
+                    }
+                }
+            }
+
+            // draw new building card
+            Games[response.gameCode.ToString()].BuildingsOnTable[Convert.ToInt16(response.slot[0])] = Games[response.gameCode.ToString()].DrawBuildingCard();
+
+            // send to all users
+            SendToAllAsync(new { success = 1, action = "buildingTaken", buildingsOnTable = Games[response.gameCode.ToString()].BuildingsOnTable, username = response.username, building = response.cardName, numberOfMoneyCards = response.moneyCardsName.Count, Game = Games[response.gameCode.ToString()] }, UsersInLobby(response.gameCode.ToString()));
+
+        }
         static public void StartGame(dynamic response)
         {
-            if (response.userID.ToString() != "1")
+            if (response.userID.ToString() != "0")
             {
                 SendAsync(new { success = 0, message = "notALobbyLeader" }, AllConnection[response.username.ToString()]);
                 return;
@@ -169,6 +357,7 @@ namespace Server
             {
                 SendToAllAsync(new { action = "allPlayersIn", success = "1" }, UsersInLobby(response.gameCode.ToString()));
                 RandomizeCards(response);
+                Games[response.gameCode.ToString()].PlayingUser = 1;
                 //Draw cards to table
                 for (int i = 0; i < 4; i++)
                 {
@@ -190,7 +379,9 @@ namespace Server
                                      moneyOfPlayers = Games[response.gameCode.ToString()].Users, 
                                      moneyCards = Games[response.gameCode.ToString()].MoneyOnTable,
                                      buildingCards = Games[response.gameCode.ToString()].BuildingsOnTable,
-                                     usersInGame = Games[response.gameCode.ToString()].Users }, UsersInLobby(response.gameCode.ToString()));
+                                     usersInGame = Games[response.gameCode.ToString()].Users,
+                                     Game = Games[response.gameCode.ToString()]
+                                     }, UsersInLobby(response.gameCode.ToString()));
             }
         }
         static public void RandomizeCards(dynamic response)
@@ -535,7 +726,7 @@ namespace Server
             }
 
             //leave lobby
-            sCommand = $"update lobby set user{response.userID.ToString()} = null where code = '{gameCode}'";
+            sCommand = $"update lobby set user{Convert.ToString(Convert.ToInt16(response.userID.ToString()) + 1)} = null where code = '{gameCode}'";
             command = new MySqlCommand(sCommand, databaseConnection);
             command.ExecuteNonQuery();
             if (FirstEmptySpaceInLobby(gameCode) == -1)

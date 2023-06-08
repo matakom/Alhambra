@@ -79,7 +79,7 @@ namespace Klient.ViewModels
                 {
                     case "lobbyCreated":
                         Global.GameCode = response.gameCode;
-                        Global.ID = 1;
+                        Global.ID = 0;
                         Lobby.Users[0] = Global.Username;
                         Debug.WriteLine("Lobby joined, server accepted");
                         Global.SendAsync(new { action = "getID", userID = Global.ID });
@@ -87,7 +87,7 @@ namespace Klient.ViewModels
                         break;
                     case "lobbyJoined":
                         Global.GameCode = gameCode;
-                        Global.ID = response.userID;
+                        Global.ID = response.userID - 1;
                         Debug.WriteLine("Lobby joined, server accepted");
                         Global.SendAsync(new { action = "getID", userID = Global.ID });
                         changeContentAction("lobby");

@@ -14,6 +14,7 @@ namespace Server
         public List<Buildings> DeckOfBuildings = new List<Buildings>();
         public Money[] MoneyOnTable = new Money[4];
         public Buildings[] BuildingsOnTable = new Buildings[4];
+        public int PlayingUser;
         public struct User
         {
             public List<Buildings> Buildings;
@@ -31,6 +32,15 @@ namespace Server
                 Points = 0;
                 Position = "";
             }
+        }
+        public void NextPlayer()
+        {
+            if(PlayingUser == Users.Count)
+            {
+                PlayingUser = 1;
+                return;
+            }
+            PlayingUser++;
         }
         public void AddUser(int userID, string userName)
         {

@@ -28,7 +28,14 @@ namespace Klient.Models
             {
                 ID = id;
                 Username = username;
+                Position = "";
             }
+        }
+        public static void AddUserPosition(int id, string side)
+        {
+            var temp = Users[id];
+            temp.Position = side;
+            Users[id] = temp;
         }
     }
     public class Money

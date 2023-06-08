@@ -19,12 +19,15 @@ using Microsoft.CodeAnalysis.Operations;
 using DynamicData;
 using Avalonia.Controls.Templates;
 using System.Threading;
+using Avalonia.Threading;
+using System.Collections.Specialized;
+using Klient.Views;
 
 namespace Klient.ViewModels
 {
     public class GameViewModel : ViewModelBase
     {
-        public Dictionary<string, int> usersNames = new Dictionary<string, int>();
+        public static Dictionary<string, int> usersNames = new Dictionary<string, int>();
         private Action<string> changeContentAction;
         private ObservableCollection<Avalonia.Media.Imaging.Bitmap> moneyOnTable = new ObservableCollection<Avalonia.Media.Imaging.Bitmap>();
         public ObservableCollection<Avalonia.Media.Imaging.Bitmap> MoneyOnTable
@@ -70,15 +73,21 @@ namespace Klient.ViewModels
             set => this.RaiseAndSetIfChanged(ref bottomCards, value);
         }
         private ObservableCollection<Image> topCards = new ObservableCollection<Image>();
-        private ObservableCollection<Image> TopCards
+        public ObservableCollection<Image> TopCards
         {
             get => topCards;
             set => this.RaiseAndSetIfChanged(ref topCards, value);
         }
-
-
+        /*
+        public ObservableCollection<Avalonia.Thickness> TopCardsMargin
+        {
+            get => topCards;
+            set => this.RaiseAndSetIfChanged(ref topCardsMargin, value);
+        }
+        */
         public GameViewModel(Action<string> changeContentAction)
         {
+            //PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(TopCards)));
             Global.Status = "game";
             this.changeContentAction = changeContentAction;
             Global.SendAsync(new { action = "getUsernameAndIDForStartingGame", username = Global.Username, userID = Global.ID, gameCode = Global.GameCode });
@@ -93,6 +102,101 @@ namespace Klient.ViewModels
                 var user = new Cards.User(i + 1, response.usersInGame[i].Username.ToString());
                 Cards.Users.Add(user);
             }
+
+            //Setting users ID to their place on screen
+            usersNames.Add("bottom", Global.ID);
+            Cards.AddUserPosition(Global.ID, "bottom");
+            List<string> positions = new List<string>();
+            if (response.usersInGame.Count == 4)
+            {
+                positions.Add("right");
+            }
+            if(response.usersInGame.Count >= 2)
+            {
+                positions.Add("top");
+            }
+            if (response.usersInGame.Count >= 3)
+            {
+                positions.Add("left");
+            }
+
+
+            if(response.usersInGame.Count == 4)
+            {
+                for(int i = 1; i < 4; i++)
+                {
+                    if(Global.ID + i > 3)
+                    {
+                        Cards.AddUserPosition(Global.ID + i - 4, positions.First());
+                        usersNames.Add(positions.First(), Global.ID + i - 4);
+                    }
+                    else
+                    {
+                        Cards.AddUserPosition(Global.ID + i, positions.First());
+                        usersNames.Add(positions.First(), Global.ID + i);
+                    }
+                    positions.RemoveAt(0);
+                }
+            }
+            else if (response.usersInGame.Count == 3)
+            {
+                for (int i = 1; i < 3; i++)
+                {
+                    if (Global.ID + i > 2)
+                    {
+                        Cards.AddUserPosition(Global.ID + i - 3, positions.First());
+                        usersNames.Add(positions.First(), Global.ID + i - 3);
+                    }
+                    else
+                    {
+                        Cards.AddUserPosition(Global.ID + i, positions.First());
+                        usersNames.Add(positions.First(), Global.ID + i);
+                    }
+                    positions.RemoveAt(0);
+                }
+            }
+            else if (response.usersInGame.Count == 2)
+            {
+                for (int i = 1; i < 2; i++)
+                {
+                    if (Global.ID + i > 1)
+                    {
+                        Cards.AddUserPosition(Global.ID + i - 2, positions.First());
+                        usersNames.Add(positions.First(), Global.ID + i - 2);
+                    }
+                    else
+                    {
+                        Cards.AddUserPosition(Global.ID + i, positions.First());
+                        usersNames.Add(positions.First(), Global.ID + i);
+                    }
+                    positions.RemoveAt(0);
+                }
+            }
+            /*
+            for (int i = 0; i < response.usersInGame.Count; i++)
+            {
+                if (i + 1 == Global.ID)
+                {
+                    continue;
+                }
+                usersNames.Add(positions.First(), i + 1);
+                positions.RemoveAt(0);
+            }
+            */
+
+            //Setting usernames in game
+            Bottom = Cards.Users[usersNames["bottom"]].Username + " - " + usersNames["bottom"];
+            Top = Cards.Users[usersNames["top"]].Username + " - " + usersNames["top"];
+            if (usersNames.ContainsKey("left"))
+            {
+                Left = Cards.Users[usersNames["left"]].Username + " - " + usersNames["left"];
+            }
+            if (usersNames.ContainsKey("right"))
+            {
+                Right = Cards.Users[usersNames["right"]].Username + " - " + usersNames["right"];
+            }
+
+            GameView.Refresh(response);
 
             //Add money cards to all users
             for (int i = 0; i < Cards.Users.Count; i++)
@@ -111,63 +215,31 @@ namespace Klient.ViewModels
                     sum += money.value;
                 }
             }
+            
 
-            //Setting users ID to their place on screen
-            usersNames.Add("bottom", Global.ID);
-            List<string> positions = new List<string>();
-            if(response.usersInGame.Count >= 2)
-            {
-                positions.Add("top");
-            }
-            if(response.usersInGame.Count >= 3)
-            {
-                positions.Add("left");
-            }
-            if(response.usersInGame.Count == 4)
-            {
-                positions.Add("right");
-            }
-            for(int i = 0; i < response.usersInGame.Count; i++)
-            {
-                if (i + 1 == Global.ID)
-                {
-                    continue;
-                }
-                usersNames.Add(positions.First(), i + 1);
-                positions.RemoveAt(0);
-            }
 
-            //Setting usernames in game
-            Bottom = (Cards.Users[usersNames["bottom"] - 1].Username == null ? "null" : Cards.Users[usersNames["bottom"] - 1].Username) + " - " + (usersNames["bottom"] == null ? "000" : usersNames["bottom"]);
-            Top = (Cards.Users[usersNames["top"] - 1].Username == null ? "null" : Cards.Users[usersNames["top"] - 1].Username) + " - " + (usersNames["top"] == null ? "000" : usersNames["top"]);
-            if (usersNames.ContainsKey("left"))
-            {
-                Left = (Cards.Users[usersNames["left"] - 1].Username == null ? "null" : Cards.Users[usersNames["left"] - 1].Username) + " - " + (usersNames["left"] == null ? "000" : usersNames["left"]);
-            }
-            if (usersNames.ContainsKey("right"))
-            {
-                Right = (Cards.Users[usersNames["right"] - 1].Username == null ? "null" : Cards.Users[usersNames["right"] - 1].Username) + " - " + (usersNames["right"] == null ? "000" : usersNames["right"]);
-            }
-
+            /*
             //Adding position to Cards.Users
             for (int i = 0; i < response.usersInGame.Count; i++)
             {
 
             }
+            */
 
             //Adding money and building on table to screen
+            /*
             for (int i = 0; i < 4; i++)
             {
                 MoneyOnTable.Add(new Avalonia.Media.Imaging.Bitmap("../../.." + response.moneyCards[i].path.ToString()));
 
                 BuildingsOnTable.Add(new Avalonia.Media.Imaging.Bitmap("../../.." + response.buildingCards[i].path.ToString()));
             }
-            
             DrawCardsToUser("bottom", true, 0);
             DrawCardsToUser("top", true, 0);
+            */
 
         }
-        public async void DrawCardsToUser(string side, bool trueForMoney, int slot)
+        public async Task DrawCardsToUser(string side, bool trueForMoney, int slot)
         {
             int numOfCards = Cards.Users[usersNames[side] - 1].Money.Count;
             List<Vector2> coordinates = await CalculatePosition(numOfCards, side);
@@ -175,7 +247,10 @@ namespace Klient.ViewModels
             for (int i = 0; i < numOfCards; i++)
             {
                 string path = "";
-                if(side == "bottom")
+
+                path = "";
+                
+                if (side == "bottom")
                 {
                     path = @$"../../../Assets/{Cards.Users[usersNames[side] - 1].Money[i].name}.png";
                 }
@@ -183,6 +258,7 @@ namespace Klient.ViewModels
                 {
                     path = @"../../../Assets/money.png";
                 }
+                
                 Bitmap bitmap = new Bitmap(path);
 
                 int marginForBottom;
@@ -198,6 +274,7 @@ namespace Klient.ViewModels
 
                 Image image = new Image();
                 image.Source = bitmap;
+                //image.Source = 
                 image.Height = 160;
 
                 int Yshift = 0;
@@ -217,7 +294,6 @@ namespace Klient.ViewModels
                     Yshift = -160;
                 }
                 int Xshift = (Convert.ToInt16(coordinates[i].X) - (numOfCards - 1 - i) * 85) - 50;
-                image.Margin = Avalonia.Thickness.Parse($"{Xshift},{Yshift},0,0");
 
                 int fromX = 550;
                 if(slot != 0)
@@ -230,24 +306,21 @@ namespace Klient.ViewModels
                     fromY = marginForBottom - 410;
                 }
 
-
-                /*
-                Thread myThread = new Thread(new ParameterizedThreadStart((obj) =>
-                {
-                    Move(new Vector2(fromX, fromY), new Vector2(Xshift, Yshift), 10, image);
-                }));
-                myThread.Start();
-                */
-                Move(new Vector2(fromX, fromY), new Vector2(Xshift, Yshift), 3, image);
+                int index = 0;
 
                 if (side == "bottom")
                 {
+                    index = BottomCards.Count;
                     BottomCards.Add(image);
                 }
                 else if(side == "top")
                 {
+                    index = TopCards.Count;
                     TopCards.Add(image);
                 }
+
+                Move(new Vector2(fromX, fromY), new Vector2(Xshift, Yshift), 5, side, i);
+
             }
         }
         public async void ProcessUser()
@@ -275,27 +348,60 @@ namespace Klient.ViewModels
                 }
             }
         }
-        public async Task Move(Vector2 from, Vector2 to, double seconds, Image image)
+        public async Task Move(Vector2 from, Vector2 to, double seconds, string side, int cardNumber)
         {
-            Debug.WriteLine(DateTime.Now);
-            double fps = 60;
+            double fps = 30;
 
-            double numberOfFrames = Math.Round((1000 * seconds) / (1000 / fps));
-
-            Vector2 difference = new Vector2(0, 0);
-            Vector2 newPosition = from;
-            double restOfFrames = 0;
+            double numberOfFrames = Math.Round(fps * seconds);
 
             double shiftX = (to.X - from.X) / numberOfFrames;
             double shiftY = (to.Y - from.Y) / numberOfFrames;
 
+            List<int> XCoords = new List<int>();
+            List<int> YCoords = new List<int>();
+
+            for (int j = 0; j < numberOfFrames; j++)
+            {
+                XCoords.Add(Convert.ToInt16(from.X + j * shiftX));
+                YCoords.Add(Convert.ToInt16(from.Y + j * shiftY));
+            }
+
+            int delay = Convert.ToInt32(Math.Round((1000 / fps) / 11 * 6));
+
             for (int i = 0; i < numberOfFrames; i++)
             {
-                int XCoords = Convert.ToInt16(from.X + i * shiftX);
-                int YCoords = Convert.ToInt16(from.Y + i * shiftY);
-                image.Margin = Avalonia.Thickness.Parse($"{XCoords},{YCoords},0,0");
-                await Task.Delay(Convert.ToInt32(Math.Round((1000 / fps) / 11 * 6)));
+                if(side == "bottom")
+                {
+                    BottomCards[cardNumber].Margin = Avalonia.Thickness.Parse($"{XCoords[i]},{YCoords[i]},0,0");
+                }
+                else if(side == "top")
+                {
+                    TopCards[cardNumber].Margin = Avalonia.Thickness.Parse($"{XCoords[i]},{YCoords[i]},0,0");
+                }
+                
+                //TopCardsMargin[cardNumber] = Avalonia.Thickness.Parse($"{XCoords[i]},{YCoords[i]},0,0");
+                await Task.Delay(delay);
             }
+
+            /*
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(1000 / fps);
+            int i = 0;
+            timer.Tick += (sender, e) =>
+            {
+                Debug.WriteLine(i);
+                Debug.WriteLine(DateTime.Now.Millisecond);
+                TopCardsMargin[cardNumber] = Avalonia.Thickness.Parse($"{XCoords[i]},{YCoords[i]},0,0");
+                //image.Margin = Avalonia.Thickness.Parse($"{XCoords[i]},{YCoords[i]},0,0");
+                i++;
+
+                if(!(i < numberOfFrames))
+                {
+                    timer.Stop();
+                }
+            };
+            timer.Start();
+            */
         }
         public static async Task<List<Vector2>> CalculatePosition(int numberOfCards, string player)
         {

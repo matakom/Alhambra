@@ -15,6 +15,7 @@ using Avalonia.Controls;
 using Klient.Models;
 using System.Reactive;
 using System.Collections.ObjectModel;
+using Avalonia.Threading;
 
 namespace Klient.ViewModels
 {
@@ -47,7 +48,7 @@ namespace Klient.ViewModels
             this.changeContentAction = changeContentAction;
             Global.Status = "inLobby";
             gameCode = Global.GameCode;
-            Users[(int)(Global.ID - 1)] = Global.Username;
+            Users[(int)(Global.ID)] = Global.Username;
             ProcessUser();
             LeaveLobbyCommand = ReactiveCommand.Create(() =>
             {
@@ -67,7 +68,7 @@ namespace Klient.ViewModels
                 Users[i] = response.users[i].ToString();
                 if (Lobby.Users[i] == Global.Username)
                 {
-                    Global.ID = i + 1;
+                    Global.ID = i;
                 }
                 Debug.WriteLine(Users[i] + " - " + i);
             }
@@ -81,7 +82,6 @@ namespace Klient.ViewModels
         {
             while (Global.WebSocketConnection.State == WebSocketState.Open && Global.Status == "inLobby")
             {
-
                 dynamic response = await Global.WaitingForMessage();
 
                 if(response.success.ToString() == "0")
