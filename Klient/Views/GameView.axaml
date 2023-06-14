@@ -4,9 +4,23 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
 			 Width="1920" Height="1080"
-             x:Class="Klient.Views.GameView">
+             x:Class="Klient.Views.GameView"
+			 x:Name="UserControl">
 
 	<Canvas x:Name="Canvas">
+		<Label Name="playingPlayer"
+			   Content="{Binding PlayingUser}"
+			   Canvas.Bottom="790"
+			   Canvas.Left="870"
+			   FontWeight="Bold"/>
+		<Button Name="accept"
+				Command="{Binding SendCards}"
+				Canvas.Bottom="300"
+				Canvas.Left="1275"
+				Height="70"
+				Width="200"
+				FontSize="30"
+				Content="Send cards"/>
 		<Border Name="ME"
 				Classes="name"
 				Canvas.Bottom="0"

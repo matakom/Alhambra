@@ -22,25 +22,23 @@ using System.Threading;
 using Avalonia.Threading;
 using System.Collections.Specialized;
 using Klient.Views;
+using System.Reactive;
+using System.Net.Http.Headers;
+using System.Collections;
 
 namespace Klient.ViewModels
 {
     public class GameViewModel : ViewModelBase
     {
+        private string playingUser;
+        public string PlayingUser
+        {
+            get => playingUser;
+            set => this.RaiseAndSetIfChanged(ref playingUser, value);
+        }
         public static Dictionary<string, int> usersNames = new Dictionary<string, int>();
         private Action<string> changeContentAction;
-        private ObservableCollection<Avalonia.Media.Imaging.Bitmap> moneyOnTable = new ObservableCollection<Avalonia.Media.Imaging.Bitmap>();
-        public ObservableCollection<Avalonia.Media.Imaging.Bitmap> MoneyOnTable
-        {
-            get => moneyOnTable;
-            set => this.RaiseAndSetIfChanged(ref moneyOnTable, value);
-        }
-        private ObservableCollection<Avalonia.Media.Imaging.Bitmap> buildingsOnTable = new ObservableCollection<Avalonia.Media.Imaging.Bitmap>();
-        public ObservableCollection<Avalonia.Media.Imaging.Bitmap> BuildingsOnTable
-        {
-            get => buildingsOnTable;
-            set => this.RaiseAndSetIfChanged(ref buildingsOnTable, value);
-        }
+        public ReactiveCommand<Unit, Unit> SendCards { get; }
         private string bottom;
         public string Bottom
         {
@@ -78,13 +76,6 @@ namespace Klient.ViewModels
             get => topCards;
             set => this.RaiseAndSetIfChanged(ref topCards, value);
         }
-        /*
-        public ObservableCollection<Avalonia.Thickness> TopCardsMargin
-        {
-            get => topCards;
-            set => this.RaiseAndSetIfChanged(ref topCardsMargin, value);
-        }
-        */
         public GameViewModel(Action<string> changeContentAction)
         {
             //PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(TopCards)));
@@ -92,7 +83,111 @@ namespace Klient.ViewModels
             this.changeContentAction = changeContentAction;
             Global.SendAsync(new { action = "getUsernameAndIDForStartingGame", username = Global.Username, userID = Global.ID, gameCode = Global.GameCode });
 
+            SendCards = ReactiveCommand.Create(() =>
+            {
+                Dictionary<int, string> money = AllChosenMoney(true);
+                if (!money.ContainsKey(-1))
+                {
+                    Global.SendAsync(new { action = "pickCards", gameCode = Global.GameCode, username = Global.Username, userID = Global.ID, cardName = money.Values, slot = money.Keys });
+                    return;
+                }
+                Dictionary<int, string> test = AllChosenMoney(false);
+                if (test.ContainsKey(-1))
+                {
+                    //HANDLE WHEN PLAYER CHOSES ILLEGAL CARDS
+                }
+
+            });
+
             ProcessUser();
+        }
+        public static Dictionary<int, string> AllChosenMoney(bool forMoney)
+        {
+            if (forMoney)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    if (GameView.BuildingCards[i].chosen)
+                    {
+                        return new Dictionary<int, string>() { { -1, "chosenBuilding" } };
+                    }
+                }
+
+                Dictionary<int, string> money = new Dictionary<int, string>();
+                for (int i = 0; i < GameView.BottomCardsImages.Count; i++)
+                {
+                    if (GameView.BottomCardsImages[i].chosen)
+                    {
+                        return new Dictionary<int, string>() { { -1, "chosenPlayersMoney" } };
+                    }
+                }
+                for (int i = 0; i < 4; i++)
+                {
+                    if (GameView.MoneyCards[i].chosen)
+                    {
+                        money.Add(i, Cards.MoneyOnTable[i].name);
+                    }
+                }
+                return money;
+            }
+
+            Dictionary<int, string> building = new Dictionary<int, string>();
+            List<string> moneyToBuy = new List<string>();
+            int price = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                if (GameView.BuildingCards[i].chosen)
+                {
+                    building.Add(i, Cards.BuildingsOnTable[i].name);
+                    price = Convert.ToInt16(Cards.BuildingsOnTable[i].name.Substring(2, 1));
+                }
+            }
+            List<int> value = new List<int>();
+            for (int i = 0; i < GameView.BottomCardsImages.Count; i++)
+            {
+                if (GameView.BottomCardsImages[i].chosen)
+                {
+                    moneyToBuy.Add(Cards.Users[Global.ID].Money[i].name);
+                    value.Add(Cards.Users[Global.ID].Money[i].value);
+                }
+            }
+            for (int i = 0; i < 4; i++)
+            {
+                if (GameView.MoneyCards[i].chosen)
+                {
+                    return new Dictionary<int, string>() { { -1, "chosenPlayersMoney" } };
+                }
+            }
+            List<string> types = new List<string>();
+            for(int i = 0; i < moneyToBuy.Count; i++)
+            {
+                types.Add(moneyToBuy[i]);
+                types[i] = types[i].Substring(0, 2);
+
+                string type = "";
+
+                switch (types[i])
+                {
+                    case "br":
+                        types[i] = "brown";
+                        break;
+                    case "ye":
+                        types[i] = "yellow";
+                        break;
+                    case "bl":
+                        types[i] = "blue";
+                        break;
+                    case "gr":
+                        types[i] = "green";
+                        break;
+                }
+            }
+            if(types.Count < 1)
+            {
+                return new Dictionary<int, string>() { { -1, "chosenPlayersMoney" } };
+            }
+            Global.SendAsync(new { action = "pickBuilding", gameCode = Global.GameCode, username = Global.Username, userID = Global.ID, cardName = building.Values, slot = building.Keys, price = price, moneyCardsName = moneyToBuy, moneyCardsType = types, moneyCardsValue = value});
+            return new Dictionary<int, string>() { { 1, "ok" } };
         }
         public async void PrepareGame(dynamic response)
         {
@@ -111,7 +206,7 @@ namespace Klient.ViewModels
             {
                 positions.Add("right");
             }
-            if(response.usersInGame.Count >= 2)
+            if (response.usersInGame.Count >= 2)
             {
                 positions.Add("top");
             }
@@ -121,11 +216,11 @@ namespace Klient.ViewModels
             }
 
 
-            if(response.usersInGame.Count == 4)
+            if (response.usersInGame.Count == 4)
             {
-                for(int i = 1; i < 4; i++)
+                for (int i = 1; i < 4; i++)
                 {
-                    if(Global.ID + i > 3)
+                    if (Global.ID + i > 3)
                     {
                         Cards.AddUserPosition(Global.ID + i - 4, positions.First());
                         usersNames.Add(positions.First(), Global.ID + i - 4);
@@ -172,17 +267,6 @@ namespace Klient.ViewModels
                     positions.RemoveAt(0);
                 }
             }
-            /*
-            for (int i = 0; i < response.usersInGame.Count; i++)
-            {
-                if (i + 1 == Global.ID)
-                {
-                    continue;
-                }
-                usersNames.Add(positions.First(), i + 1);
-                positions.RemoveAt(0);
-            }
-            */
 
             //Setting usernames in game
             Bottom = Cards.Users[usersNames["bottom"]].Username + " - " + usersNames["bottom"];
@@ -196,7 +280,39 @@ namespace Klient.ViewModels
                 Right = Cards.Users[usersNames["right"]].Username + " - " + usersNames["right"];
             }
 
+            int count = 0;
+            while (GameView.canvas == null)
+            {
+                count++;
+                await Task.Delay(500);
+                if (count == 20)
+                {
+                    throw new Exception("canvas are set to null :/");
+                }
+            }
+
             GameView.Refresh(response);
+
+            // money cards
+            for (int i = 0; i < 4; i++)
+            {
+                Cards.MoneyOnTable[i] = new Money(response.moneyCards[i].name.ToString(),
+                                          response.moneyCards[i].path.ToString(),
+                                          Convert.ToInt32(response.moneyCards[i].value),
+                                          response.moneyCards[i].color.ToString(),
+                                          Convert.ToBoolean(response.moneyCards[i].special));
+                GameView.SetTableCard(response.moneyCards[i].path.ToString(), true, i);
+            }
+
+            // building cards
+            for (int i = 0; i < 4; i++)
+            {
+                Cards.BuildingsOnTable[i] = new Buildings(response.buildingCards[i].name.ToString(),
+                                                          response.buildingCards[i].path.ToString(),
+                                                          Convert.ToInt16(response.buildingCards[i].value),
+                                                          Convert.ToInt16(response.buildingCards[i].rarity));
+                GameView.SetTableCard(response.buildingCards[i].path.ToString(), false, i);
+            }
 
             //Add money cards to all users
             for (int i = 0; i < Cards.Users.Count; i++)
@@ -215,29 +331,6 @@ namespace Klient.ViewModels
                     sum += money.value;
                 }
             }
-            
-
-
-            /*
-            //Adding position to Cards.Users
-            for (int i = 0; i < response.usersInGame.Count; i++)
-            {
-
-            }
-            */
-
-            //Adding money and building on table to screen
-            /*
-            for (int i = 0; i < 4; i++)
-            {
-                MoneyOnTable.Add(new Avalonia.Media.Imaging.Bitmap("../../.." + response.moneyCards[i].path.ToString()));
-
-                BuildingsOnTable.Add(new Avalonia.Media.Imaging.Bitmap("../../.." + response.buildingCards[i].path.ToString()));
-            }
-            DrawCardsToUser("bottom", true, 0);
-            DrawCardsToUser("top", true, 0);
-            */
-
         }
         public async Task DrawCardsToUser(string side, bool trueForMoney, int slot)
         {
@@ -249,7 +342,7 @@ namespace Klient.ViewModels
                 string path = "";
 
                 path = "";
-                
+
                 if (side == "bottom")
                 {
                     path = @$"../../../Assets/{Cards.Users[usersNames[side] - 1].Money[i].name}.png";
@@ -258,7 +351,7 @@ namespace Klient.ViewModels
                 {
                     path = @"../../../Assets/money.png";
                 }
-                
+
                 Bitmap bitmap = new Bitmap(path);
 
                 int marginForBottom;
@@ -280,11 +373,11 @@ namespace Klient.ViewModels
                 int Yshift = 0;
                 if (i == 0)
                 {
-                    if(side == "bottom")
+                    if (side == "bottom")
                     {
                         Yshift = marginForBottom - 70;
                     }
-                    else if(side == "top")
+                    else if (side == "top")
                     {
                         Yshift = marginForBottom - 850;
                     }
@@ -296,7 +389,7 @@ namespace Klient.ViewModels
                 int Xshift = (Convert.ToInt16(coordinates[i].X) - (numOfCards - 1 - i) * 85) - 50;
 
                 int fromX = 550;
-                if(slot != 0)
+                if (slot != 0)
                 {
                     fromX += 160 + slot * 135;
                 }
@@ -313,7 +406,7 @@ namespace Klient.ViewModels
                     index = BottomCards.Count;
                     BottomCards.Add(image);
                 }
-                else if(side == "top")
+                else if (side == "top")
                 {
                     index = TopCards.Count;
                     TopCards.Add(image);
@@ -344,6 +437,15 @@ namespace Klient.ViewModels
                 {
                     case "prepareGame":
                         PrepareGame(response);
+                        PlayingUser = Cards.Users[0].Username;
+                        break;
+                    case "moneyCardTaken":
+                        GameView.MoneyCardTaken(response);
+                        PlayingUser = Cards.Users[Convert.ToInt16(response.Game.PlayingUser)].Username;
+                        break;
+                    case "buildingTaken":
+                        GameView.BuildingTaken(response);
+                        PlayingUser = Cards.Users[Convert.ToInt16(response.Game.PlayingUser)].Username;
                         break;
                 }
             }
@@ -370,15 +472,15 @@ namespace Klient.ViewModels
 
             for (int i = 0; i < numberOfFrames; i++)
             {
-                if(side == "bottom")
+                if (side == "bottom")
                 {
                     BottomCards[cardNumber].Margin = Avalonia.Thickness.Parse($"{XCoords[i]},{YCoords[i]},0,0");
                 }
-                else if(side == "top")
+                else if (side == "top")
                 {
                     TopCards[cardNumber].Margin = Avalonia.Thickness.Parse($"{XCoords[i]},{YCoords[i]},0,0");
                 }
-                
+
                 //TopCardsMargin[cardNumber] = Avalonia.Thickness.Parse($"{XCoords[i]},{YCoords[i]},0,0");
                 await Task.Delay(delay);
             }
@@ -401,7 +503,8 @@ namespace Klient.ViewModels
                 }
             };
             timer.Start();
-            */
+            *
+            **/
         }
         public static async Task<List<Vector2>> CalculatePosition(int numberOfCards, string player)
         {
@@ -449,5 +552,7 @@ namespace Klient.ViewModels
 
             return coordinates;
         }
+
+
     }
 }

@@ -2,6 +2,7 @@
 using Avalonia.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -15,6 +16,7 @@ namespace Klient.Models
         public static Buildings[] BuildingsOnTable = new Buildings[4];
         public static int NumberOfPlayers;
         public static List<User> Users = new List<User>();
+
         public struct User
         {
             public List<Buildings> Buildings = new List<Buildings>();
@@ -24,11 +26,13 @@ namespace Klient.Models
             public string Username;
             public int Points;
             public string Position;
+            public int[] TakenBuildings;
             public User(int id, string username)
             {
                 ID = id;
                 Username = username;
                 Position = "";
+                TakenBuildings = new int[6] { 0, 0, 0, 0, 0, 0 };
             }
         }
         public static void AddUserPosition(int id, string side)

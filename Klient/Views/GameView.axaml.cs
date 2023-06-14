@@ -11,28 +11,240 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
 using System.Reflection;
+using System.Linq;
+using System.Net;
 
 namespace Klient.Views
 {
     public partial class GameView : UserControl
     {
-        static private double lengthOfAnimation = 3;
-        static List<MyImage> BottomCardsImages = new List<MyImage>();
-        static List<MyImage> LeftCardsImages = new List<MyImage>();
-        static List<MyImage> RightCardsImages = new List<MyImage>();
-        static List<MyImage> TopCardsImages = new List<MyImage>();
-        static List<string> BottomCards = new List<string>();
-        static List<MyImage> MoneyCards = new List<MyImage>();
-        static List<MyImage> BuildingCards = new List<MyImage>();
-        static private Canvas canvas;
+        static private double lengthOfAnimation = 2;
+        static public List<MyImage> BottomCardsImages = new List<MyImage>();
+        static public List<MyImage> LeftCardsImages = new List<MyImage>();
+        static public List<MyImage> RightCardsImages = new List<MyImage>();
+        static public List<MyImage> TopCardsImages = new List<MyImage>();
+        static public List<MyImage> MoneyCards = new List<MyImage>();
+        static public List<MyImage> BuildingCards = new List<MyImage>();
+        static public Canvas canvas;
+        static public MyImage UsedCard = new MyImage(new Vector2(0, 0), false);
+        static public UserControl userControl = new UserControl();
         public GameView()
         {
             InitializeComponent();
             canvas = this.FindControl<Canvas>("Canvas");
+            userControl = this.FindControl<UserControl>("UserControl");
         }
-        public async void SetTableCards(dynamic response)
+        public static async void SetTableCard(string cardPath, bool money, int slot)
         {
+            if (money)
+            {
+                int index = 0;
+                if (MoneyCards.Count == 4)
+                {
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (MoneyCards[i] == null)
+                        {
+                            index = i;
+                            break;
+                        }
+                        if (i == 3)
+                        {
+                            return;
+                        }
+                    }
+                }
 
+                MyImage image = new MyImage(new Vector2(550, 620), true);
+                Debug.WriteLine(image.vector);
+                image.Height = 160;
+                Debug.WriteLine($@"../../..{cardPath}.png");
+                image.Source = new Bitmap($@"../../..{cardPath}");
+                canvas.Children.Add(image);
+                if (MoneyCards.Count == 4)
+                {
+                    MoneyCards[index] = image;
+                }
+                else
+                {
+                    MoneyCards.Add(image);
+                }
+                Vector2 to = new Vector2(710 + 135 * slot, 620);
+                image.Move(image.vector, to, lengthOfAnimation, image, false);
+                image.vector = to;
+            }
+            else
+            {
+                int index = 0;
+                if (BuildingCards.Count == 4)
+                {
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (BuildingCards[i] == null || slot == i)
+                        {
+                            index = i;
+                            break;
+                        }
+                        if (i == 3)
+                        {
+                            return;
+                        }
+                    }
+                }
+
+                MyImage image = new MyImage(new Vector2(550, 410), true);
+                Debug.WriteLine(image.vector);
+                image.Height = 160;
+                Debug.WriteLine($@"../../..{cardPath}.png");
+                image.Source = new Bitmap($@"../../..{cardPath}");
+                canvas.Children.Add(image);
+                if (BuildingCards.Count == 4)
+                {
+                    BuildingCards[index] = image;
+                }
+                else
+                {
+                    BuildingCards.Add(image);
+                }
+                Vector2 to = new Vector2(710 + 135 * slot, 410);
+                image.Move(image.vector, to, lengthOfAnimation, image, false);
+                image.vector = to;
+            }
+        }
+        public static async void SetCardToPlayer(int slot, string side, dynamic response, bool draw)
+        {
+            if (side == "bottom")
+            {
+                List<Vector2> coords = CalculatePosition(BottomCardsImages.Count + 1, "bottom");
+                int numberOfBottomCards = BottomCardsImages.Count;
+                for (int i = 0; i < numberOfBottomCards + 1; i++)
+                {
+                    if (i == numberOfBottomCards)
+                    {
+                        BottomCardsImages.Add(MoneyCards[slot]);
+                        if (draw)
+                        {
+                            BottomCardsImages[i].Move(MoneyCards[slot].vector, coords[i], lengthOfAnimation, BottomCardsImages[i], false);
+                        }
+                        MoneyCards[slot].chosen = false;
+                        MoneyCards[slot] = null;
+                        BottomCardsImages[BottomCardsImages.Count - 1].UpdateVisualState();
+                        BottomCardsImages.Last().vector = coords[i];
+                    }
+                    else
+                    {
+                        if (draw)
+                        {
+                            BottomCardsImages[i].Move(BottomCardsImages[i].vector, coords[i], lengthOfAnimation, BottomCardsImages[i], false);
+                        }
+                    }
+                }
+            }
+            else if (side == "top")
+            {
+                List<Vector2> coords = CalculatePosition(TopCardsImages.Count + 1, "top");
+                for (int i = 0; i < TopCardsImages.Count + 1; i++)
+                {
+                    if (i == TopCardsImages.Count)
+                    {
+                        MyImage image = new MyImage(new Vector2(550, 620), true);
+                        Debug.WriteLine(image.vector);
+                        image.Height = 160;
+                        Debug.WriteLine($@"../../../Assets/money.png");
+                        image.Source = new Bitmap($@"../../../Assets/money.png");
+                        canvas.Children.Add(image);
+                        image.vector = MoneyCards[slot].vector;
+                        TopCardsImages.Add(image);
+                        canvas.Children.Remove(MoneyCards[slot]);
+                        if (draw)
+                        {
+                            image.Move(image.vector, coords[i], lengthOfAnimation, image, false);
+                        }
+                        MoneyCards[slot].chosen = false;
+                        MoneyCards[slot].UpdateVisualState();
+                        MoneyCards[slot] = null;
+                        TopCardsImages.Last().vector = coords[i];
+                        break;
+                    }
+                    else
+                    {
+                        if (draw)
+                        {
+                            TopCardsImages[i].Move(TopCardsImages[i].vector, coords[i], lengthOfAnimation, TopCardsImages[i], false);
+                        }
+                    }
+                }
+            }
+            else if(side == "right")
+            {
+                List<Vector2> coords = CalculatePosition(RightCardsImages.Count + 1, "right");
+                for (int i = 0; i < RightCardsImages.Count + 1; i++)
+                {
+                    if (i == RightCardsImages.Count)
+                    {
+                        MyImage image = new MyImage(new Vector2(550, 620), true);
+                        Debug.WriteLine(image.vector);
+                        image.Width = 160;
+                        Debug.WriteLine($@"../../../Assets/moneyr.png");
+                        image.Source = new Bitmap($@"../../../Assets/moneyr.png");
+                        canvas.Children.Add(image);
+                        image.vector = MoneyCards[slot].vector;
+                        RightCardsImages.Add(image);
+                        canvas.Children.Remove(MoneyCards[slot]);
+                        if (draw)
+                        {
+                            image.Move(image.vector, coords[i], lengthOfAnimation, image, false);
+                        }
+                        MoneyCards[slot].chosen = false;
+                        MoneyCards[slot].UpdateVisualState();
+                        MoneyCards[slot] = null;
+                        RightCardsImages.Last().vector = coords[i];
+                        break;
+                    }
+                    else
+                    {
+                        if (draw)
+                        {
+                            RightCardsImages[i].Move(RightCardsImages[i].vector, coords[i], lengthOfAnimation, RightCardsImages[i], false);
+                        }
+                    }
+                }
+            }
+            else if(side == "left")
+            {
+                List<Vector2> coords = CalculatePosition(LeftCardsImages.Count + 1, "left");
+                for (int i = 0; i < LeftCardsImages.Count + 1; i++)
+                {
+                    if (i == LeftCardsImages.Count)
+                    {
+                        MyImage image = new MyImage(new Vector2(550, 620), true);
+                        Debug.WriteLine(image.vector);
+                        image.Width = 160;
+                        Debug.WriteLine($@"../../../Assets/moneyr.png");
+                        image.Source = new Bitmap($@"../../../Assets/moneyr.png");
+                        canvas.Children.Add(image);
+                        image.vector = MoneyCards[slot].vector;
+                        LeftCardsImages.Add(image);
+                        canvas.Children.Remove(MoneyCards[slot]);
+                        if (draw)
+                        {
+                            image.Move(image.vector, coords[i], lengthOfAnimation, image, false);
+                        }
+                        MoneyCards[slot].chosen = false;
+                        MoneyCards[slot].UpdateVisualState();
+                        MoneyCards[slot] = null;
+                        LeftCardsImages.Last().vector = coords[i];
+                        break;
+                    }
+                    else
+                    {
+                        if (draw)
+                        {
+                            LeftCardsImages[i].Move(LeftCardsImages[i].vector, coords[i], lengthOfAnimation, LeftCardsImages[i], false);
+                        }
+                    }
+                }
+            }
         }
         public static async void Refresh(dynamic response)
         {
@@ -40,9 +252,7 @@ namespace Klient.Views
             for (int i = 0; i < Cards.Users.Count; i++)
             {
                 // je rozdíl penìz pøed a po?
-
                 List<Money> moneyResponse = ParseToMoney(response, i);
-                // parsnout array na money list -----------------------------------------------------------------------
 
                 if (moneyResponse.Count == Cards.Users[i].Money.Count)
                 {
@@ -62,72 +272,21 @@ namespace Klient.Views
                             g--;
                         }
                     }
-                }
-                // když uživatel má ménì penìz
-                if (moneyUser.Count > 0)
-                {
-                    // pro každý zbylý peníz
-                    for (int j = 0; j < moneyUser.Count; j++)
-                    {
-                        // pokud je uživatel bottom
-                        if (Cards.Users[i].Username == Global.Username)
-                        {
-                            int index = BottomCards.IndexOf(moneyUser[j].name);
-                            BottomCards.RemoveAt(index);
-                            BottomCardsImages.RemoveAt(index);
-                            canvas.Children.Remove(BottomCardsImages[index]);
-                            if (j + 1 == moneyUser.Count)
-                            {
-                                MoveCards("bottom");
-                            }
-                        }
-                        else
-                        {
-                            if (Cards.Users[i].Position == "left")
-                            {
-                                LeftCardsImages.RemoveAt(0);
-                                canvas.Children.Remove(LeftCardsImages[0]);
-                                if (j + 1 == moneyUser.Count)
-                                {
-                                    MoveCards("left");
-                                }
-                            }
-                            else if (Cards.Users[i].Position == "right")
-                            {
-                                RightCardsImages.RemoveAt(0);
-                                canvas.Children.Remove(LeftCardsImages[0]);
-                                if (j + 1 == moneyUser.Count)
-                                {
-                                    MoveCards("right");
-                                }
-                            }
-                            else if (Cards.Users[i].Position == "top")
-                            {
-                                TopCardsImages.RemoveAt(0);
-                                canvas.Children.Remove(LeftCardsImages[0]);
-                                if (j + 1 == moneyUser.Count)
-                                {
-                                    MoveCards("top");
-                                }
-                            }
-                        }
-                    }
-                }
+                }            
                 // uživatel dostal peníze
-                else if (moneyResponse.Count > 0)
+                if (moneyResponse.Count > 0)
                 {
                     for (int j = 0; j < moneyResponse.Count; j++)
                     {
                         // pokud je uživatel bottom
                         if (Cards.Users[i].Position == "bottom")
                         {
-                            MyImage image = new MyImage(new Vector2(550, 620));
+                            MyImage image = new MyImage(new Vector2(550, 620), true);
                             Debug.WriteLine(image.vector);
                             image.Height = 160;
                             Debug.WriteLine($@"../../..{moneyResponse[j].path}.png");
                             image.Source = new Bitmap($@"../../..{moneyResponse[j].path}");
                             canvas.Children.Add(image);
-                            BottomCards.Add(moneyResponse[j].name);
                             BottomCardsImages.Add(image);
                             if (j + 1 == moneyResponse.Count)
                             {
@@ -138,7 +297,7 @@ namespace Klient.Views
                         {
                             if (Cards.Users[i].Position == "left")
                             {
-                                MyImage image = new MyImage(new Vector2(550, 620));
+                                MyImage image = new MyImage(new Vector2(550, 620), false);
                                 image.Source = new Bitmap(@"../../../Assets/moneyr.png");
                                 image.Width = 160;
                                 canvas.Children.Add(image);
@@ -150,7 +309,7 @@ namespace Klient.Views
                             }
                             else if (Cards.Users[i].Position == "right")
                             {
-                                MyImage image = new MyImage(new Vector2(550, 620));
+                                MyImage image = new MyImage(new Vector2(550, 620), false);
                                 image.Source = new Bitmap(@"../../../Assets/moneyr.png");
                                 image.Width = 160;
                                 canvas.Children.Add(image);
@@ -162,7 +321,7 @@ namespace Klient.Views
                             }
                             else if (Cards.Users[i].Position == "top")
                             {
-                                MyImage image = new MyImage(new Vector2(550, 620));
+                                MyImage image = new MyImage(new Vector2(550, 620), false);
                                 image.Source = new Bitmap(@"../../../Assets/money.png");
                                 image.Height = 160;
                                 canvas.Children.Add(image);
@@ -197,73 +356,33 @@ namespace Klient.Views
                 default:
                     break;
             }
-            List<Vector2> to = await CalculatePosition(countOfIteration, side);
+            List<Vector2> to = CalculatePosition(countOfIteration, side);
             for (int i = 0; i < countOfIteration; i++)
             {
                 if (side == "bottom")
                 {
-                    Move(BottomCardsImages[i].vector, to[i], lengthOfAnimation, side, i);
+                    BottomCardsImages[i].Move(BottomCardsImages[i].vector, to[i], lengthOfAnimation, BottomCardsImages[i], false);
+                    BottomCardsImages[i].vector = to[i];
                 }
                 else if (side == "left")
                 {
-                    Move(LeftCardsImages[i].vector, to[i], lengthOfAnimation, side, i);
+                    LeftCardsImages[i].Move(LeftCardsImages[i].vector, to[i], lengthOfAnimation, LeftCardsImages[i], false);
+                    LeftCardsImages[i].vector = to[i];
                 }
                 else if (side == "right")
                 {
-                    Move(RightCardsImages[i].vector, to[i], lengthOfAnimation, side, i);
+                    RightCardsImages[i].Move(RightCardsImages[i].vector, to[i], lengthOfAnimation, RightCardsImages[i], false);
+                    RightCardsImages[i].vector = to[i];
                 }
                 else if (side == "top")
                 {
-                    Move(TopCardsImages[i].vector, to[i], lengthOfAnimation, side, i);
+                    TopCardsImages[i].Move(TopCardsImages[i].vector, to[i], lengthOfAnimation, TopCardsImages[i], false);
+                    TopCardsImages[i].vector = to[i];
                 }
             }
         }
-        public static async Task Move(Vector2 from, Vector2 to, double seconds, string side, int cardNumber)
-        {
-            double fps = 60;
 
-            double numberOfFrames = Math.Round(fps * seconds);
-
-            double shiftX = (to.X - from.X) / numberOfFrames;
-            double shiftY = (to.Y - from.Y) / numberOfFrames;
-
-            List<int> XCoords = new List<int>();
-            List<int> YCoords = new List<int>();
-
-            for (int j = 0; j < numberOfFrames; j++)
-            {
-                XCoords.Add(Convert.ToInt16(from.X + j * shiftX));
-                YCoords.Add(Convert.ToInt16(from.Y + j * shiftY));
-            }
-
-            int delay = Convert.ToInt32(Math.Round((1000 / fps) / 11 * 6));
-
-            for (int i = 0; i < numberOfFrames; i++)
-            {
-                if (side == "bottom")
-                {
-                    Canvas.SetBottom(BottomCardsImages[cardNumber], YCoords[i]);
-                    Canvas.SetLeft(BottomCardsImages[cardNumber], XCoords[i]);
-                }
-                else if (side == "top")
-                {
-                    Canvas.SetBottom(TopCardsImages[cardNumber], YCoords[i]);
-                    Canvas.SetLeft(TopCardsImages[cardNumber], XCoords[i]);
-                }
-                else if (side == "left")
-                {
-                    Canvas.SetBottom(LeftCardsImages[cardNumber], YCoords[i]);
-                    Canvas.SetLeft(LeftCardsImages[cardNumber], XCoords[i]);
-                }
-                else if (side == "right")
-                {
-                    Canvas.SetBottom(RightCardsImages[cardNumber], YCoords[i]);
-                    Canvas.SetLeft(RightCardsImages[cardNumber], XCoords[i]);
-                }
-                await Task.Delay(delay);
-            }
-        }
-        public static async Task<List<Vector2>> CalculatePosition(int numberOfCards, string player)
+        public static List<Vector2> CalculatePosition(int numberOfCards, string player)
         {
             List<Vector2> coordinates = new List<Vector2>();
             int y = 0;
@@ -274,7 +393,7 @@ namespace Klient.Views
             }
             else if (player == "top")
             {
-                y = 900;
+                y = 850;
             }
             else
             {
@@ -287,8 +406,8 @@ namespace Klient.Views
                     x = 1700;
                 }
 
-                float bottom = 300f;
-                float top = 780f;
+                float bottom = 325f;
+                float top = 845f;
                 float midPoint = (bottom + top) / 2f;
 
                 float heightOfCards = numberOfCards * 114 + ((numberOfCards - 1) * 10);
@@ -321,7 +440,7 @@ namespace Klient.Views
             }
 
             float start = 420f;
-            float end = 1500f;
+            float end = 1600f;
             float mid = (start + end) / 2f;
 
             float widthOfCards = numberOfCards * 114 + ((numberOfCards - 1) * 10);
@@ -365,6 +484,160 @@ namespace Klient.Views
                 moneyOut.Add(money);
             }
             return moneyOut;
+        }
+        public static async void MoneyCardTaken(dynamic response)
+        {
+            string side = GameViewModel.usersNames.FirstOrDefault(x => x.Value == Convert.ToInt16(response.ID)).Key;
+
+            for (int i = 0; i < response.TakenCards.Count; i++)
+            {
+                if (response.TakenCards.Count - 1!= i)
+                {
+                    SetCardToPlayer(Convert.ToInt16(response.TakenCards[i]), side, response, false);
+                }
+                else
+                {
+                    SetCardToPlayer(Convert.ToInt16(response.TakenCards[i]), side, response, true);
+                }
+                Cards.Users[Convert.ToInt16(response.ID)].Money.Add(Cards.MoneyOnTable[Convert.ToInt16(response.TakenCards[i])]);
+            }
+
+            // z balíèku se vytahuje nová karta
+            for (int i = 0; i < response.TakenCards.Count; i++)
+            {
+                SetTableCard(response.MoneyOnTable[Convert.ToInt16(response.TakenCards[i])].path.ToString(), true, Convert.ToInt16(response.TakenCards[i]));
+                Cards.MoneyOnTable[response.TakenCards[i]] = new Money(response.MoneyOnTable[Convert.ToInt16(response.TakenCards[i])].name.ToString(),
+                                                                      response.MoneyOnTable[Convert.ToInt16(response.TakenCards[i])].path.ToString(),
+                                                                      Convert.ToInt32(response.MoneyOnTable[Convert.ToInt16(response.TakenCards[i])].value),
+                                                                      response.MoneyOnTable[Convert.ToInt16(response.TakenCards[i])].color.ToString(),
+                                                                      Convert.ToBoolean(response.MoneyOnTable[Convert.ToInt16(response.TakenCards[i])].special));
+            }
+
+
+
+        }
+        public static async void BuildingTaken(dynamic response)
+        {
+            string side = GameViewModel.usersNames.FirstOrDefault(x => x.Value == Convert.ToInt16(response.ID)).Key;
+
+            // setting a shift for building card
+            Vector2 to = BuildingCards[Convert.ToInt32(response.slot)].vector;
+            if (side == "bottom")
+            {
+                to.Y += -570;
+            }
+            else if(side == "top")
+            {
+                to.Y += 670;
+            }
+            else if (side == "right")
+            {
+                to.X += 1345 - 135 * Convert.ToInt32(response.slot + 1);
+            }
+            else if (side == "left")
+            {
+                to.X += -870 - 135 * Convert.ToInt32(response.slot + 1);
+            }
+            else
+            {
+                Debug.WriteLine("WE HAVE GOT A PROBLEM");
+            }
+
+            BuildingCards[Convert.ToInt32(response.slot)].Move(BuildingCards[Convert.ToInt32(response.slot)].vector, to, lengthOfAnimation, BuildingCards[Convert.ToInt32(response.slot)], true);
+
+            SetTableCard(response.buildingsOnTable.ToString(), false, Convert.ToInt32(response.slot));
+
+            Cards.BuildingsOnTable[Convert.ToInt32(response.slot)] = new Buildings(response.Game.BuildingsOnTable[Convert.ToInt32(response.slot)].name.ToString(),
+                                                                                  response.Game.BuildingsOnTable[Convert.ToInt32(response.slot)].path.ToString(),
+                                                                                  Convert.ToInt16(response.Game.BuildingsOnTable[Convert.ToInt32(response.slot)].value),
+                                                                                  Convert.ToInt16(response.Game.BuildingsOnTable[Convert.ToInt32(response.slot)].rarity));
+
+            List<int> toRemove = new List<int>();
+
+            for (int i = 0; i < Convert.ToInt16(response.numberOfMoneyCards); i++)
+            {
+                for(int j = 0; j < Cards.Users[Convert.ToInt16(response.ID)].Money.Count; j++)
+                {
+                    if (response.moneyUsed[i].ToString() == Cards.Users[Convert.ToInt16(response.ID)].Money[j].name)
+                    {
+                        Vector2 from = new Vector2(0, 0);
+                        if (side == "bottom")
+                        {
+                            to = BottomCardsImages[j + i].vector;
+                            to.Y += -300;
+                            from = BottomCardsImages[j + i].vector;
+                            BottomCardsImages[j + i].Move(from, to, lengthOfAnimation, BottomCardsImages[j + i], true);
+                            toRemove.Add(j + i);
+                            Cards.Users[Convert.ToInt32(response.ID)].Money.RemoveAt(j);
+                        }
+                        else if (side == "top")
+                        {
+                            to = TopCardsImages[j + i].vector;
+                            to.Y += 300;
+                            from = TopCardsImages[j + i].vector;
+                            TopCardsImages[j + i].Move(from, to, lengthOfAnimation, TopCardsImages[j + i], true);
+                            toRemove.Add(j + i);
+                            Cards.Users[Convert.ToInt32(response.ID)].Money.RemoveAt(j);
+                        }
+                        else if (side == "right")
+                        {
+                            to = RightCardsImages[j + i].vector;
+                            to.X += 300;
+                            from = RightCardsImages[j + i].vector;
+                            RightCardsImages[j + i].Move(from, to, lengthOfAnimation, RightCardsImages[j + i], true);
+                            toRemove.Add(j + i);
+                            Cards.Users[Convert.ToInt32(response.ID)].Money.RemoveAt(j);
+                        }
+                        else if (side == "left")
+                        {
+                            to = LeftCardsImages[j + i].vector;
+                            to.X += -300;
+                            from = LeftCardsImages[j + i].vector;
+                            LeftCardsImages[j + i].Move(from, to, lengthOfAnimation, LeftCardsImages[j + i], true);
+                            toRemove.Add(j + i);
+                            Cards.Users[Convert.ToInt32(response.ID)].Money.RemoveAt(j);
+                        }
+                        else
+                        {
+                            Debug.WriteLine("WE HAVE GOT A PROBLEM 2---------");
+                        }
+
+                        break;
+                    }
+                }
+            }
+            for(int i = 0; i < toRemove.Count; i++)
+            {
+                if (side == "bottom")
+                {
+                    BottomCardsImages.RemoveAt(toRemove[i] - i);
+                }
+                else if (side == "top")
+                {
+                    TopCardsImages.RemoveAt(toRemove[i] - i);
+                }
+                else if (side == "right")
+                {
+                    RightCardsImages.RemoveAt(toRemove[i] - i);
+                }
+                else if (side == "left")
+                {
+                    LeftCardsImages.RemoveAt(toRemove[i] - i);
+                }
+            }
+
+            MoveCards(side);
+
+            for (int i = 0; i < 6; i++)
+            {
+                Cards.Users[Convert.ToInt32(response.ID)].TakenBuildings[i] = Convert.ToInt32(response.playersBuildings[i]);
+            }
+
+            // changing cards in Cards.cs
+            
+            Console.WriteLine("test");
+            
+            
         }
     }
 }

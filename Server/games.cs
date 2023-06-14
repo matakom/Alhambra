@@ -15,6 +15,10 @@ namespace Server
         public Money[] MoneyOnTable = new Money[4];
         public Buildings[] BuildingsOnTable = new Buildings[4];
         public int PlayingUser;
+        public games()
+        {
+            PlayingUser = 0;
+        }
         public struct User
         {
             public List<Buildings> Buildings;
@@ -23,6 +27,7 @@ namespace Server
             public string Username;
             public int Points;
             public string Position;
+            public int[] TakenBuildings;
             public User(int id, string username)
             {
                 ID = id;
@@ -31,13 +36,18 @@ namespace Server
                 Money = new List<Money>();
                 Points = 0;
                 Position = "";
+                TakenBuildings = new int[] {0, 0, 0, 0, 0, 0 };
             }
         }
-        public void NextPlayer()
+        public void NextPlayer(bool next)
         {
-            if(PlayingUser == Users.Count)
+            if (!next)
             {
-                PlayingUser = 1;
+                return;
+            }
+            if(PlayingUser == Users.Count - 1)
+            {
+                PlayingUser = 0;
                 return;
             }
             PlayingUser++;
