@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.Linq;
 using System.Net;
+using System.IO;
 
 namespace Klient.Views
 {
@@ -381,7 +382,6 @@ namespace Klient.Views
                 }
             }
         }
-
         public static List<Vector2> CalculatePosition(int numberOfCards, string player)
         {
             List<Vector2> coordinates = new List<Vector2>();
@@ -513,10 +513,21 @@ namespace Klient.Views
                                                                       Convert.ToBoolean(response.MoneyOnTable[Convert.ToInt16(response.TakenCards[i])].special));
             }
 
+            for (int i = 0; i < 4; i++)
+            {
+                if (Cards.BuildingsOnTable[i].value == -1)
+                {
+                    SetTableCard(response.Game.BuildingsOnTable[i].path.ToString(), false, i);
+                    Cards.BuildingsOnTable[i] = new Buildings(response.BuildingsOnTable[i].name.ToString(),
+                                                              response.BuildingsOnTable[i].path.ToString(),
+                                                              Convert.ToInt32(response.BuildingsOnTable[i].value),
+                                                              Convert.ToInt32(response.BuildingsOnTable[i].rarity));
+                }
+            }
 
 
         }
-        public static async void BuildingTaken(dynamic response)
+        public static async Task BuildingTaken(dynamic response)
         {
             string side = GameViewModel.usersNames.FirstOrDefault(x => x.Value == Convert.ToInt16(response.ID)).Key;
 
@@ -542,15 +553,31 @@ namespace Klient.Views
             {
                 Debug.WriteLine("WE HAVE GOT A PROBLEM");
             }
-
+            
+            // odhozeni vybrane budovy grafika
             BuildingCards[Convert.ToInt32(response.slot)].Move(BuildingCards[Convert.ToInt32(response.slot)].vector, to, lengthOfAnimation, BuildingCards[Convert.ToInt32(response.slot)], true);
-
-            SetTableCard(response.buildingsOnTable.ToString(), false, Convert.ToInt32(response.slot));
+            BuildingCards[Convert.ToInt32(response.slot)].chosen = false;
 
             Cards.BuildingsOnTable[Convert.ToInt32(response.slot)] = new Buildings(response.Game.BuildingsOnTable[Convert.ToInt32(response.slot)].name.ToString(),
                                                                                   response.Game.BuildingsOnTable[Convert.ToInt32(response.slot)].path.ToString(),
                                                                                   Convert.ToInt16(response.Game.BuildingsOnTable[Convert.ToInt32(response.slot)].value),
                                                                                   Convert.ToInt16(response.Game.BuildingsOnTable[Convert.ToInt32(response.slot)].rarity));
+
+            // nastaveni nove karty do vyberu
+            if (Convert.ToBoolean(response.moveFinished))
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    if (Cards.BuildingsOnTable[i].value == -1 || i == Convert.ToInt32(response.slot))
+                    {
+                        SetTableCard(response.BuildingsOnTable[i].path.ToString(), false, i);
+                        Cards.BuildingsOnTable[i] = new Buildings(response.BuildingsOnTable[i].name.ToString(),
+                                                                  response.BuildingsOnTable[i].path.ToString(),
+                                                                  Convert.ToInt32(response.BuildingsOnTable[i].value),
+                                                                  Convert.ToInt32(response.BuildingsOnTable[i].rarity));
+                    }
+                }
+            }
 
             List<int> toRemove = new List<int>();
 
@@ -633,11 +660,6 @@ namespace Klient.Views
                 Cards.Users[Convert.ToInt32(response.ID)].TakenBuildings[i] = Convert.ToInt32(response.playersBuildings[i]);
             }
 
-            // changing cards in Cards.cs
-            
-            Console.WriteLine("test");
-            
-            
         }
     }
 }

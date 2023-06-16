@@ -1,13 +1,19 @@
 ID: 0
-Datum a čas: 14.06.2023 20:35:13
-Chybová zpráva: Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')
-Stack trace:    at System.Collections.Generic.List`1.get_Item(Int32 index)
-   at Klient.Views.GameView.SetCardToPlayer(Int32 slot, String side, Object response, Boolean draw) in C:\Users\Komárek Matěj\OneDrive - DELTA - SŠIE, s.r.o\Dokumenty\Alhambra\Klient\Views\GameView.axaml.cs:line 138
+Datum a čas: 16.06.2023 13:41:22
+Chybová zpráva: Access to the path 'C:\Users\Komárek Matěj\OneDrive - DELTA - SŠIE, s.r.o\Dokumenty\Alhambra\Klient' is denied.
+Stack trace:    at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.FileStreamHelpers.ChooseStrategyCore(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.OpenRead(String path)
+   at Avalonia.Skia.PlatformRenderInterface.LoadBitmap(String fileName) in /_/src/Skia/Avalonia.Skia/PlatformRenderInterface.cs:line 81
+   at Avalonia.Media.Imaging.Bitmap..ctor(String fileName) in /_/src/Avalonia.Visuals/Media/Imaging/Bitmap.cs:line 61
+   at Klient.Views.GameView.SetTableCard(String cardPath, Boolean money, Int32 slot) in C:\Users\Komárek Matěj\OneDrive - DELTA - SŠIE, s.r.o\Dokumenty\Alhambra\Klient\Views\GameView.axaml.cs:line 100
    at System.Threading.Tasks.Task.<>c.<ThrowAsync>b__128_0(Object state)
    at Avalonia.Threading.JobRunner.RunJobs(Nullable`1 priority) in /_/src/Avalonia.Base/Threading/JobRunner.cs:line 37
    at Avalonia.Win32.Win32Platform.WndProc(IntPtr hWnd, UInt32 msg, IntPtr wParam, IntPtr lParam) in /_/src/Windows/Avalonia.Win32/Win32Platform.cs:line 283
    at Avalonia.Win32.Interop.UnmanagedMethods.DispatchMessage(MSG& lpmsg)
-   at Avalonia.Win32.Win32Platform.RunLoop(CancellationToken cancellationToken) in /_/src/Windows/Avalonia.Win32/Win32Platform.cs:line 217
+   at Avalonia.Win32.Win32Platform.RunLoop(CancellationToken cancellationToken) in /_/src/Windows/Avalonia.Win32/Win32Platform.cs:line 210
    at Avalonia.Threading.Dispatcher.MainLoop(CancellationToken cancellationToken) in /_/src/Avalonia.Base/Threading/Dispatcher.cs:line 65
    at Avalonia.Controls.ApplicationLifetimes.ClassicDesktopStyleApplicationLifetime.Start(String[] args) in /_/src/Avalonia.Controls/ApplicationLifetimes/ClassicDesktopStyleApplicationLifetime.cs:line 120
    at Avalonia.ClassicDesktopStyleApplicationLifetimeExtensions.StartWithClassicDesktopLifetime[T](T builder, String[] args, ShutdownMode shutdownMode) in /_/src/Avalonia.Controls/ApplicationLifetimes/ClassicDesktopStyleApplicationLifetime.cs:line 209

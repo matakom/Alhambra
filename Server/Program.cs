@@ -201,11 +201,19 @@ namespace Server
                 Games[response.gameCode.ToString()].MoneyOnTable[Convert.ToInt16(response.slot[j])] = Games[response.gameCode.ToString()].DrawMoneyCard();
             }
 
+            for (int i = 0; i < 4; i++)
+            {
+                if (Games[response.gameCode.ToString()].BuildingsOnTable[i].path == "")
+                {
+                    Games[response.gameCode.ToString()].BuildingsOnTable[i] = Games[response.gameCode.ToString()].DrawBuildingCard();
+                }
+            }
+
             // next turn
             Games[response.gameCode.ToString()].NextPlayer(true);
 
             // send info
-            SendToAllAsync(new { success = 1, action = "moneyCardTaken", MoneyOnTable = Games[response.gameCode.ToString()].MoneyOnTable, TakenCards = response.slot, ID = response.userID, Game = Games[response.gameCode.ToString()] }, UsersInLobby(response.gameCode.ToString()));
+            SendToAllAsync(new { success = 1, action = "moneyCardTaken", BuildingsOnTable = Games[response.gameCode.ToString()].BuildingsOnTable, MoneyOnTable = Games[response.gameCode.ToString()].MoneyOnTable, TakenCards = response.slot, ID = response.userID, Game = Games[response.gameCode.ToString()] }, UsersInLobby(response.gameCode.ToString()));
             for (int i = 0; i < response.slot.Count; i++)
             {
                 Games[response.gameCode.ToString()].Users[Convert.ToInt32(response.userID)].Money.Add(new Money(Games[response.gameCode.ToString()].MoneyOnTable[Convert.ToInt16(response.slot[i])].name.ToString(),
@@ -300,18 +308,39 @@ namespace Server
             {
                 value += Convert.ToInt16(response.moneyCardsValue[i]);
             }
+            bool moveFinished = true;
+            if(value == Convert.ToInt16(response.price))
+            {
+                moveFinished = false;
+            }
             if (value < Convert.ToInt16(response.price))
             {
                 SendToAllAsync(new { success = 0, message = "moneyIsNotEnough", ID = response.userID }, UsersInLobby(response.gameCode.ToString()));
                 return;
             }
-            else if (value != Convert.ToInt16(response.price))
+            else if (moveFinished)
             {
                 Games[response.gameCode.ToString()].NextPlayer(true);
             }
 
             // add building to user
             Games[response.gameCode.ToString()].Users[indexOfUser].Buildings.Add(Games[response.gameCode.ToString()].BuildingsOnTable[Convert.ToInt16(response.slot[0])]);
+
+            if (moveFinished)
+            {
+                // draw new building card
+                for (int i = 0; i < 4; i++)
+                {
+                    if (Games[response.gameCode.ToString()].BuildingsOnTable[i].path == "" || Convert.ToInt16(response.slot[0]) == i)
+                    {
+                        Games[response.gameCode.ToString()].BuildingsOnTable[i] = Games[response.gameCode.ToString()].DrawBuildingCard();
+                    }
+                }
+            }
+            else
+            {
+                Games[response.gameCode.ToString()].BuildingsOnTable[Convert.ToInt16(response.slot[0])] = new Buildings("", "", -1, -1);
+            }
 
             // remove money cards from user
             List<string> money = new List<string>();
@@ -327,9 +356,9 @@ namespace Server
                 {
                     int indexOfRemovedCard = -1;
                     bool foundACard = false;
-                    for (int i = 0; i < Games[response.gameCode.ToString()].Users[indexOfUser].Money.Count; i++)
+                    for (int i = 0; i < Games[response.gameCode.ToString()].Users[indexOfUser - 1].Money.Count; i++)
                     {
-                        if (Games[response.gameCode.ToString()].Users[indexOfUser].Money[i].name == money[0])
+                        if (Games[response.gameCode.ToString()].Users[indexOfUser - 1].Money[i].name == money[0])
                         {
                             money.RemoveAt(0);
                             indexOfRemovedCard = i;
@@ -338,7 +367,7 @@ namespace Server
                     }
                     if (foundACard)
                     {
-                        Games[response.gameCode.ToString()].Users[indexOfUser].Money.RemoveAt(indexOfRemovedCard);
+                        Games[response.gameCode.ToString()].Users[indexOfUser - 1].Money.RemoveAt(indexOfRemovedCard);
                     }
                     else
                     {
@@ -351,14 +380,25 @@ namespace Server
                 Debug.WriteLine(e);
             }
 
-            // draw new building card
-            Games[response.gameCode.ToString()].BuildingsOnTable[Convert.ToInt16(response.slot[0])] = Games[response.gameCode.ToString()].DrawBuildingCard();
 
             int buildingRarity = Convert.ToInt32(response.cardName[0].ToString().Substring(0, 1));
             Games[response.gameCode.ToString()].Users[Convert.ToInt32(response.userID)].TakenBuildings[buildingRarity - 1]++;
 
             // send to all users
-            SendToAllAsync(new { success = 1, action = "buildingTaken", playersBuildings = Games[response.gameCode.ToString()].Users[Convert.ToInt32(response.userID)].TakenBuildings, moneyUsed = response.moneyCardsName, slot = response.slot[0], ID = response.userID, buildingsOnTable = Games[response.gameCode.ToString()].BuildingsOnTable[Convert.ToInt32(response.slot[0])].path, username = response.username, building = response.cardName, numberOfMoneyCards = response.moneyCardsName.Count, Game = Games[response.gameCode.ToString()] }, UsersInLobby(response.gameCode.ToString()));
+            SendToAllAsync(new { success = 1,
+                                 moveFinished = moveFinished, 
+                                 action = "buildingTaken", 
+                                 playersBuildings = Games[response.gameCode.ToString()].Users[Convert.ToInt32(response.userID)].TakenBuildings,
+                                 moneyUsed = response.moneyCardsName,
+                                 slot = response.slot[0],
+                                 ID = response.userID,
+                                 buildingsOnTable = Games[response.gameCode.ToString()].BuildingsOnTable[Convert.ToInt32(response.slot[0])].path,
+                                 BuildingsOnTable = Games[response.gameCode.ToString()].BuildingsOnTable,
+                                 username = response.username,
+                                 building = response.cardName,
+                                 numberOfMoneyCards = response.moneyCardsName.Count,
+                                 Game = Games[response.gameCode.ToString()] },
+                                    UsersInLobby(response.gameCode.ToString()));
         }
         static public void StartGame(dynamic response)
         {

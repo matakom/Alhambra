@@ -30,8 +30,13 @@
 				   HorizontalContentAlignment="Center"
 				   VerticalContentAlignment="Center"
 				   VerticalAlignment="Top"
-				   Margin="0,30,0,0"/>
+				   Margin="0,10,0,0"/>
 		</Border>
+		<Image Source="/Assets/pocitadloBudov.png"
+				Name="bottomPocitadlo"
+				Height="150"
+				Canvas.Bottom="45"
+				Canvas.Left="1560"/>
 		<Border Name="LEFT"
 				Classes="name"
 				Canvas.Bottom="0"
@@ -41,8 +46,13 @@
 				   HorizontalContentAlignment="Center"
 				   VerticalContentAlignment="Center"
 				   VerticalAlignment="Top"
-				   Margin="0,30,0,0"/>
+				   Margin="0,10,0,0"/>
 		</Border>
+		<Image Source="/Assets/pocitadloBudov.png"
+				Name="leftPocitadlo"
+				Height="150"
+				Canvas.Bottom="45"
+				Canvas.Left="40"/>
 		<Border Name="TOP"
 				Classes="name"
 				Canvas.Bottom="830"
@@ -52,8 +62,13 @@
 				   HorizontalContentAlignment="Center"
 				   VerticalContentAlignment="Center"
 				   VerticalAlignment="Top"
-				   Margin="0,30,0,0"/>
+				   Margin="0,40,0,0"/>
 		</Border>
+		<Image Source="/Assets/pocitadloBudov.png"
+				Name="topPocitadlo"
+				Height="150"
+				Canvas.Bottom="845"
+				Canvas.Left="40"/>
 		<Border Name="RIGHT"
 				Classes="name"
 				Canvas.Bottom="830"
@@ -63,8 +78,13 @@
 				   HorizontalContentAlignment="Center"
 				   VerticalContentAlignment="Center"
 				   VerticalAlignment="Top"
-				   Margin="0,30,0,0"/>
+				   Margin="0,40,0,0"/>
 		</Border>
+		<Image Source="/Assets/pocitadloBudov.png"
+				Name="rightPocitadlo"
+				Height="150"
+				Canvas.Bottom="845"
+				Canvas.Left="1560"/>
 		<Image Classes="card"
 			   Name="DeckOfMoney"
 			   Source="/Assets/money.png"
@@ -122,26 +142,173 @@
 			   Canvas.Bottom="270"
 			   Canvas.Left="700"/>
 
-		<ItemsControl Items="{Binding BottomCards}">
-			
-
-		</ItemsControl>
-
-		<ItemsControl Items="{Binding TopCards}">
-
-
-		</ItemsControl>		
-		<!--
-		<ItemsRepeater Items="{Binding TopCards}">
-			<ItemsRepeater.ItemTemplate>
-				<DataTemplate>
-					<Image Source="avares://Klient/Assets/102.png"
-							Margin="{Binding Margin}"
-							Height="160"/>
-				</DataTemplate>
-			</ItemsRepeater.ItemTemplate>
-		</ItemsRepeater>
-		-->
-
+		<TextBlock
+				Name="top1"
+				Text="{Binding NumberOfTakenBuildings[1][0]}"
+				Canvas.Bottom="933"
+				Canvas.Left="87"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="top2"
+				Text="{Binding NumberOfTakenBuildings[1][1]}"
+				Canvas.Bottom="933"
+				Canvas.Left="189"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="top3"
+				Text="{Binding NumberOfTakenBuildings[1][2]}"
+				Canvas.Bottom="933"
+				Canvas.Left="288"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="top4"
+				Text="{Binding NumberOfTakenBuildings[1][3]}"
+				Canvas.Bottom="860"
+				Canvas.Left="87"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="top5"
+				Text="{Binding NumberOfTakenBuildings[1][4]}"
+				Canvas.Bottom="860"
+				Canvas.Left="189"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="top6"
+				Text="{Binding NumberOfTakenBuildings[1][5]}"
+				Canvas.Bottom="860"
+				Canvas.Left="288"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="bot1"
+				Text="{Binding NumberOfTakenBuildings[0][0]}"
+				Canvas.Bottom="133"
+				Canvas.Left="1607"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="bot2"
+				Text="{Binding NumberOfTakenBuildings[0][1]}"
+				Canvas.Bottom="133"
+				Canvas.Left="1708"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="bot3"
+				Text="{Binding NumberOfTakenBuildings[0][2]}"
+				Canvas.Bottom="133"
+				Canvas.Left="1809"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="bot4"
+				Text="{Binding NumberOfTakenBuildings[0][3]}"
+				Canvas.Bottom="60"
+				Canvas.Left="1607"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="bot5"
+				Text="{Binding NumberOfTakenBuildings[0][4]}"
+				Canvas.Bottom="60"
+				Canvas.Left="1708"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="bot6"
+				Text="{Binding NumberOfTakenBuildings[0][5]}"
+				Canvas.Bottom="60"
+				Canvas.Left="1809"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="left1"
+				Text="{Binding NumberOfTakenBuildings[2][0]}"
+				Canvas.Bottom="133"
+				Canvas.Left="87"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="left2"
+				Text="{Binding NumberOfTakenBuildings[2][1]}"
+				Canvas.Bottom="133"
+				Canvas.Left="189"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="left3"
+				Text="{Binding NumberOfTakenBuildings[2][2]}"
+				Canvas.Bottom="133"
+				Canvas.Left="288"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="left4"
+				Text="{Binding NumberOfTakenBuildings[2][3]}"
+				Canvas.Bottom="60"
+				Canvas.Left="87"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="left5"
+				Text="{Binding NumberOfTakenBuildings[2][4]}"
+				Canvas.Bottom="60"
+				Canvas.Left="189"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="left6"
+				Text="{Binding NumberOfTakenBuildings[2][5]}"
+				Canvas.Bottom="60"
+				Canvas.Left="288"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="right1"
+				Text="{Binding NumberOfTakenBuildings[3][0]}"
+				Canvas.Bottom="933"
+				Canvas.Left="1607"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="right2"
+				Text="{Binding NumberOfTakenBuildings[3][1]}"
+				Canvas.Bottom="933"
+				Canvas.Left="1708"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="right3"
+				Text="{Binding NumberOfTakenBuildings[3][2]}"
+				Canvas.Bottom="933"
+				Canvas.Left="1809"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="right4"
+				Text="{Binding NumberOfTakenBuildings[3][3]}"
+				Canvas.Bottom="860"
+				Canvas.Left="1607"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="right5"
+				Text="{Binding NumberOfTakenBuildings[3][4]}"
+				Canvas.Bottom="860"
+				Canvas.Left="1708"
+				FontSize="40"
+				FontWeight="Bold"/>
+		<TextBlock
+				Name="right6"
+				Text="{Binding NumberOfTakenBuildings[3][5]}"
+				Canvas.Bottom="860"
+				Canvas.Left="1809"
+				FontSize="40"
+				FontWeight="Bold"/>
 	</Canvas>
 </UserControl>

@@ -1,0 +1,16 @@
+ID: 3
+Datum a čas: 15.06.2023 20:40:33
+Chybová zpráva: Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')
+Stack trace:    at System.Collections.Generic.List`1.get_Item(Int32 index)
+   at Klient.ViewModels.GameViewModel.RefreshNumberOfTakenBuildings() in C:\Users\Komárek Matěj\OneDrive - DELTA - SŠIE, s.r.o\Dokumenty\Alhambra\Klient\ViewModels\GameViewModel.cs:line 592
+   at System.Threading.Tasks.Task.<>c.<ThrowAsync>b__128_0(Object state)
+   at Avalonia.Threading.AvaloniaSynchronizationContext.<>c__DisplayClass5_0.<Post>b__0() in /_/src/Avalonia.Base/Threading/AvaloniaSynchronizationContext.cs:line 33
+   at Avalonia.Threading.JobRunner.RunJobs(Nullable`1 priority) in /_/src/Avalonia.Base/Threading/JobRunner.cs:line 37
+   at Avalonia.Win32.Win32Platform.WndProc(IntPtr hWnd, UInt32 msg, IntPtr wParam, IntPtr lParam) in /_/src/Windows/Avalonia.Win32/Win32Platform.cs:line 283
+   at Avalonia.Win32.Interop.UnmanagedMethods.DispatchMessage(MSG& lpmsg)
+   at Avalonia.Win32.Win32Platform.RunLoop(CancellationToken cancellationToken) in /_/src/Windows/Avalonia.Win32/Win32Platform.cs:line 210
+   at Avalonia.Threading.Dispatcher.MainLoop(CancellationToken cancellationToken) in /_/src/Avalonia.Base/Threading/Dispatcher.cs:line 65
+   at Avalonia.Controls.ApplicationLifetimes.ClassicDesktopStyleApplicationLifetime.Start(String[] args) in /_/src/Avalonia.Controls/ApplicationLifetimes/ClassicDesktopStyleApplicationLifetime.cs:line 120
+   at Avalonia.ClassicDesktopStyleApplicationLifetimeExtensions.StartWithClassicDesktopLifetime[T](T builder, String[] args, ShutdownMode shutdownMode) in /_/src/Avalonia.Controls/ApplicationLifetimes/ClassicDesktopStyleApplicationLifetime.cs:line 209
+   at Klient.Program.Main(String[] args) in C:\Users\Komárek Matěj\OneDrive - DELTA - SŠIE, s.r.o\Dokumenty\Alhambra\Klient\Program.cs:line 22
+--------

@@ -76,6 +76,18 @@ namespace Klient.ViewModels
             get => topCards;
             set => this.RaiseAndSetIfChanged(ref topCards, value);
         }
+        private ObservableCollection<ObservableCollection<string>> numberOfTakenBuildings = new ObservableCollection<ObservableCollection<string>>()
+        {
+            new ObservableCollection<string> { "", "", "", "", "", "" },
+            new ObservableCollection<string> { "", "", "", "", "", "" },
+            new ObservableCollection<string> { "", "", "", "", "", "" },
+            new ObservableCollection<string> { "", "", "", "", "", "" }
+        };
+        public ObservableCollection<ObservableCollection<string>> NumberOfTakenBuildings
+        {
+            get => numberOfTakenBuildings;
+            set => this.RaiseAndSetIfChanged(ref numberOfTakenBuildings, value);
+        }
         public GameViewModel(Action<string> changeContentAction)
         {
             //PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(TopCards)));
@@ -139,7 +151,7 @@ namespace Klient.ViewModels
                 if (GameView.BuildingCards[i].chosen)
                 {
                     building.Add(i, Cards.BuildingsOnTable[i].name);
-                    price = Convert.ToInt16(Cards.BuildingsOnTable[i].name.Substring(2, 1));
+                    price = Convert.ToInt16(Cards.BuildingsOnTable[i].name.Substring(1, 2));
                 }
             }
             List<int> value = new List<int>();
@@ -191,6 +203,7 @@ namespace Klient.ViewModels
         }
         public async void PrepareGame(dynamic response)
         {
+
             //Adding users to cards class
             for (int i = 0; i < response.usersInGame.Count; i++)
             {
@@ -331,6 +344,7 @@ namespace Klient.ViewModels
                     sum += money.value;
                 }
             }
+            RefreshNumberOfTakenBuildings();
         }
         public async Task DrawCardsToUser(string side, bool trueForMoney, int slot)
         {
@@ -444,8 +458,9 @@ namespace Klient.ViewModels
                         PlayingUser = Cards.Users[Convert.ToInt16(response.Game.PlayingUser)].Username;
                         break;
                     case "buildingTaken":
-                        GameView.BuildingTaken(response);
+                        await GameView.BuildingTaken(response);
                         PlayingUser = Cards.Users[Convert.ToInt16(response.Game.PlayingUser)].Username;
+                        RefreshNumberOfTakenBuildings();
                         break;
                 }
             }
@@ -552,7 +567,32 @@ namespace Klient.ViewModels
 
             return coordinates;
         }
-
-
+        public async void RefreshNumberOfTakenBuildings()
+        {
+            for (int i = 0; i < Cards.Users.Count; i++)
+            {
+                string side = usersNames.FirstOrDefault(x => x.Value == (Cards.Users[i].ID - 1)).Key;
+                int index = -1;
+                switch (side)
+                {
+                    case "bottom":
+                        index = 0;
+                        break;
+                    case "top":
+                        index = 1;
+                        break;
+                    case "left":
+                        index = 2;
+                        break;
+                    case "right":
+                        index = 3;
+                        break;
+                }
+                for (int j = 0; j < 6; j++)
+                {
+                    NumberOfTakenBuildings[index][j] = Convert.ToString(Cards.Users[i].TakenBuildings[j]);
+                }
+            }
+        }
     }
 }
