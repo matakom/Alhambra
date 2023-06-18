@@ -25,6 +25,8 @@ using Klient.Views;
 using System.Reactive;
 using System.Net.Http.Headers;
 using System.Collections;
+using Avalonia.Controls.Shapes;
+using Avalonia.Media;
 
 namespace Klient.ViewModels
 {
@@ -34,7 +36,11 @@ namespace Klient.ViewModels
         public string PlayingUser
         {
             get => playingUser;
-            set => this.RaiseAndSetIfChanged(ref playingUser, value);
+            set
+            {
+                this.RaiseAndSetIfChanged(ref playingUser, value);
+                showPlayerOnRound();
+            }
         }
         public static Dictionary<string, int> usersNames = new Dictionary<string, int>();
         private Action<string> changeContentAction;
@@ -62,6 +68,18 @@ namespace Klient.ViewModels
         {
             get => right;
             set => this.RaiseAndSetIfChanged(ref right, value);
+        }
+        private string countOfMoney;
+        public string CountOfMoney
+        {
+            get => countOfMoney;
+            set => this.RaiseAndSetIfChanged(ref countOfMoney, value);
+        }
+        private string countOfBuildings;
+        public string CountOfBuildings
+        {
+            get => countOfBuildings;
+            set => this.RaiseAndSetIfChanged(ref countOfBuildings, value);
         }
 
         private ObservableCollection<Image> bottomCards = new ObservableCollection<Image>();
@@ -171,7 +189,7 @@ namespace Klient.ViewModels
                 }
             }
             List<string> types = new List<string>();
-            for(int i = 0; i < moneyToBuy.Count; i++)
+            for (int i = 0; i < moneyToBuy.Count; i++)
             {
                 types.Add(moneyToBuy[i]);
                 types[i] = types[i].Substring(0, 2);
@@ -194,14 +212,21 @@ namespace Klient.ViewModels
                         break;
                 }
             }
-            if(types.Count < 1)
+            if (types.Count < 1)
             {
                 return new Dictionary<int, string>() { { -1, "chosenPlayersMoney" } };
             }
-            Global.SendAsync(new { action = "pickBuilding", gameCode = Global.GameCode, username = Global.Username, userID = Global.ID, cardName = building.Values, slot = building.Keys, price = price, moneyCardsName = moneyToBuy, moneyCardsType = types, moneyCardsValue = value});
+            Global.SendAsync(new { action = "pickBuilding", gameCode = Global.GameCode, username = Global.Username, userID = Global.ID, cardName = building.Values, slot = building.Keys, price = price, moneyCardsName = moneyToBuy, moneyCardsType = types, moneyCardsValue = value });
             return new Dictionary<int, string>() { { 1, "ok" } };
         }
-        public async void PrepareGame(dynamic response)
+        public async void showPlayerOnRound()
+        {
+            int id = Cards.Users.FirstOrDefault(t => t.Username == PlayingUser).ID - 1;
+            string side = usersNames.FirstOrDefault(t => t.Value == id).Key;
+
+            GameView.SetPlayersRoundRectangle(side);
+        }
+        public async Task PrepareGame(dynamic response)
         {
 
             //Adding users to cards class
@@ -345,6 +370,7 @@ namespace Klient.ViewModels
                 }
             }
             RefreshNumberOfTakenBuildings();
+            GameView.SetRectangle();
         }
         public async Task DrawCardsToUser(string side, bool trueForMoney, int slot)
         {
@@ -437,6 +463,12 @@ namespace Klient.ViewModels
 
                 dynamic response = await Global.WaitingForMessage();
 
+                if (response?.Game != null)
+                {
+                    CountOfMoney = Convert.ToString(response.Game.DeckOfMoney.Count.ToString());
+                    CountOfBuildings = Convert.ToString(response.Game.DeckOfBuildings.Count.ToString());
+                }
+
                 if (response.success.ToString() == "0")
                 {
                     Debug.WriteLine((object)response.message.ToString());
@@ -450,8 +482,8 @@ namespace Klient.ViewModels
                 switch (((dynamic)response).action.ToString())
                 {
                     case "prepareGame":
-                        PrepareGame(response);
-                        PlayingUser = Cards.Users[0].Username;
+                        await PrepareGame(response);
+                        PlayingUser = Cards.Users[Convert.ToInt16(response.Game.PlayingUser)].Username;
                         break;
                     case "moneyCardTaken":
                         GameView.MoneyCardTaken(response);
@@ -622,7 +654,7 @@ namespace Klient.ViewModels
                 }
             }
         }
-        public void Reset()
+        public async void Reset()
         {
             PlayingUser = "";
 
@@ -639,5 +671,7 @@ namespace Klient.ViewModels
 
             // Reset any other necessary properties or collections
         }
+
+        
     }
 }

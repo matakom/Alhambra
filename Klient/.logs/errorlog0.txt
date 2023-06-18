@@ -1,10 +1,10 @@
 ID: 0
-Datum a čas: 18.06.2023 18:27:12
-Chybová zpráva: An item with the same key has already been added. Key: bottom
-Stack trace:    at System.Collections.Generic.Dictionary`2.TryInsert(TKey key, TValue value, InsertionBehavior behavior)
-   at System.Collections.Generic.Dictionary`2.Add(TKey key, TValue value)
-   at Klient.ViewModels.GameViewModel.PrepareGame(Object response) in C:\Users\Komárek Matěj\OneDrive - DELTA - SŠIE, s.r.o\Dokumenty\Alhambra\Klient\ViewModels\GameViewModel.cs:line 215
+Datum a čas: 18.06.2023 19:37:30
+Chybová zpráva: Object reference not set to an instance of an object.
+Stack trace:    at Klient.ViewModels.GameViewModel.PrepareGame(Object response) in C:\Users\Komárek Matěj\OneDrive - DELTA - SŠIE, s.r.o\Dokumenty\Alhambra\Klient\ViewModels\GameViewModel.cs:line 228
    at System.Threading.Tasks.Task.<>c.<ThrowAsync>b__128_0(Object state)
+   at Avalonia.Threading.AvaloniaSynchronizationContext.<>c__DisplayClass5_0.<Post>b__0() in /_/src/Avalonia.Base/Threading/AvaloniaSynchronizationContext.cs:line 33
+   at Avalonia.Threading.JobRunner.Job.Avalonia.Threading.JobRunner.IJob.Run() in /_/src/Avalonia.Base/Threading/JobRunner.cs:line 181
    at Avalonia.Threading.JobRunner.RunJobs(Nullable`1 priority) in /_/src/Avalonia.Base/Threading/JobRunner.cs:line 37
    at Avalonia.Win32.Win32Platform.WndProc(IntPtr hWnd, UInt32 msg, IntPtr wParam, IntPtr lParam) in /_/src/Windows/Avalonia.Win32/Win32Platform.cs:line 283
    at Avalonia.Win32.Interop.UnmanagedMethods.DispatchMessage(MSG& lpmsg)

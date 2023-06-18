@@ -14,6 +14,9 @@ using System.Reflection;
 using System.Linq;
 using System.Net;
 using System.IO;
+using Avalonia.Media;
+using DynamicData;
+using Avalonia.Controls.Shapes;
 
 namespace Klient.Views
 {
@@ -29,11 +32,87 @@ namespace Klient.Views
         static public Canvas canvas;
         static public MyImage UsedCard = new MyImage(new Vector2(0, 0), false);
         static public UserControl userControl = new UserControl();
+        static Avalonia.Controls.Shapes.Rectangle rectangleLeft;
+        static Avalonia.Controls.Shapes.Rectangle rectangleRight;
+        static Avalonia.Controls.Shapes.Rectangle playingUser;
+
         public GameView()
         {
             InitializeComponent();
             canvas = this.FindControl<Canvas>("Canvas");
             userControl = this.FindControl<UserControl>("UserControl");
+
+            // setting rectangle on top of non playing users
+            rectangleLeft = new Avalonia.Controls.Shapes.Rectangle();
+            rectangleRight = new Avalonia.Controls.Shapes.Rectangle();
+            playingUser = new Avalonia.Controls.Shapes.Rectangle();
+            playingUser.Height = 150;
+            playingUser.Width = 40;
+            playingUser.Fill = new SolidColorBrush(Colors.Red);
+            Canvas.Children.Add(playingUser);
+        }
+        public static void SetPlayersRoundRectangle(string side)
+        {
+            while (true)
+            {
+                if (playingUser == null)
+                {
+                    Task.Delay(20);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            if (side == "bottom")
+            {
+                Canvas.SetBottom(playingUser, 40);
+                Canvas.SetLeft(playingUser, 1535);
+            }
+            else if (side == "top")
+            {
+                Canvas.SetBottom(playingUser, 840);
+                Canvas.SetLeft(playingUser, 350);
+            }
+            else if (side == "left")
+            {
+                Canvas.SetBottom(playingUser, 40);
+                Canvas.SetLeft(playingUser, 350);
+            }
+            else if (side == "right")
+            {
+                Canvas.SetBottom(playingUser, 840);
+                Canvas.SetLeft(playingUser, 1535);
+            }
+        }
+        public static void SetRectangle()
+        {
+            if (Cards.Users.Count < 4)
+            {
+                GameView.canvas.Children.Add(rectangleRight);
+                Canvas.SetBottom(rectangleRight, 830);
+                Canvas.SetLeft(rectangleRight, 1520);
+                rectangleRight.Width = 400;
+                rectangleRight.Height = 250;
+                rectangleRight.Fill = new SolidColorBrush(Colors.White);
+            }
+            else
+            {
+                GameView.canvas.Children.Remove(rectangleRight);
+            }
+            if (Cards.Users.Count < 3)
+            {
+                GameView.canvas.Children.Add(rectangleLeft);
+                Canvas.SetBottom(rectangleLeft, 0);
+                Canvas.SetLeft(rectangleLeft, 0);
+                rectangleLeft.Width = 400;
+                rectangleLeft.Height = 250;
+                rectangleLeft.Fill = new SolidColorBrush(Colors.White);
+            }
+            else
+            {
+                GameView.canvas.Children.Remove(rectangleLeft);
+            }
         }
         public static async void SetTableCard(string cardPath, bool money, int slot)
         {
@@ -176,7 +255,7 @@ namespace Klient.Views
                     }
                 }
             }
-            else if(side == "right")
+            else if (side == "right")
             {
                 List<Vector2> coords = CalculatePosition(RightCardsImages.Count + 1, "right");
                 for (int i = 0; i < RightCardsImages.Count + 1; i++)
@@ -211,7 +290,7 @@ namespace Klient.Views
                     }
                 }
             }
-            else if(side == "left")
+            else if (side == "left")
             {
                 List<Vector2> coords = CalculatePosition(LeftCardsImages.Count + 1, "left");
                 for (int i = 0; i < LeftCardsImages.Count + 1; i++)
@@ -273,7 +352,7 @@ namespace Klient.Views
                             g--;
                         }
                     }
-                }            
+                }
                 // uživatel dostal peníze
                 if (moneyResponse.Count > 0)
                 {
@@ -491,7 +570,7 @@ namespace Klient.Views
 
             for (int i = 0; i < response.TakenCards.Count; i++)
             {
-                if (response.TakenCards.Count - 1!= i)
+                if (response.TakenCards.Count - 1 != i)
                 {
                     SetCardToPlayer(Convert.ToInt16(response.TakenCards[i]), side, response, false);
                 }
@@ -537,7 +616,7 @@ namespace Klient.Views
             {
                 to.Y += -570;
             }
-            else if(side == "top")
+            else if (side == "top")
             {
                 to.Y += 670;
             }
@@ -553,7 +632,7 @@ namespace Klient.Views
             {
                 Debug.WriteLine("WE HAVE GOT A PROBLEM");
             }
-            
+
             // odhozeni vybrane budovy grafika
             BuildingCards[Convert.ToInt32(response.slot)].Move(BuildingCards[Convert.ToInt32(response.slot)].vector, to, lengthOfAnimation, BuildingCards[Convert.ToInt32(response.slot)], true);
             BuildingCards[Convert.ToInt32(response.slot)].chosen = false;
@@ -583,7 +662,7 @@ namespace Klient.Views
 
             for (int i = 0; i < Convert.ToInt16(response.numberOfMoneyCards); i++)
             {
-                for(int j = 0; j < Cards.Users[Convert.ToInt16(response.ID)].Money.Count; j++)
+                for (int j = 0; j < Cards.Users[Convert.ToInt16(response.ID)].Money.Count; j++)
                 {
                     if (response.moneyUsed[i].ToString() == Cards.Users[Convert.ToInt16(response.ID)].Money[j].name)
                     {
@@ -633,7 +712,7 @@ namespace Klient.Views
                     }
                 }
             }
-            for(int i = 0; i < toRemove.Count; i++)
+            for (int i = 0; i < toRemove.Count; i++)
             {
                 if (side == "bottom")
                 {

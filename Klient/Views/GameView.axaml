@@ -8,6 +8,13 @@
 			 x:Name="UserControl">
 
 	<Canvas x:Name="Canvas">
+		<Label Content="{Binding CountOfMoney}"
+			   FontSize="30"
+			   Margin="585,460,0,0"/>
+		<Label Content="{Binding CountOfBuildings}"
+			   FontSize="30"
+			   Margin="585,670,0,0"/>
+		
 		<Label Name="playingPlayer"
 			   Content="{Binding PlayingUser}"
 			   Canvas.Bottom="790"

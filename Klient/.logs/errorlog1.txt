@@ -1,10 +1,11 @@
 ID: 1
-Datum a čas: 18.06.2023 18:32:51
-Chybová zpráva: Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')
-Stack trace:    at System.Collections.Generic.List`1.get_Item(Int32 index)
-   at Klient.Views.GameView.ParseToMoney(Object response, Int32 id) in C:\Users\Komárek Matěj\OneDrive - DELTA - SŠIE, s.r.o\Dokumenty\Alhambra\Klient\Views\GameView.axaml.cs:line 477
-   at Klient.Views.GameView.Refresh(Object response) in C:\Users\Komárek Matěj\OneDrive - DELTA - SŠIE, s.r.o\Dokumenty\Alhambra\Klient\Views\GameView.axaml.cs:line 256
+Datum a čas: 18.06.2023 21:04:47
+Chybová zpráva: Cannot implicitly convert type 'void' to 'object'
+Stack trace:    at CallSite.Target(Closure, CallSite, GameViewModel, Object)
+   at System.Dynamic.UpdateDelegates.UpdateAndExecute2[T0,T1,TRet](CallSite site, T0 arg0, T1 arg1)
+   at Klient.ViewModels.GameViewModel.ProcessUser() in C:\Users\Komárek Matěj\OneDrive - DELTA - SŠIE, s.r.o\Dokumenty\Alhambra\Klient\ViewModels\GameViewModel.cs:line 485
    at System.Threading.Tasks.Task.<>c.<ThrowAsync>b__128_0(Object state)
+   at Avalonia.Threading.AvaloniaSynchronizationContext.<>c__DisplayClass5_0.<Post>b__0() in /_/src/Avalonia.Base/Threading/AvaloniaSynchronizationContext.cs:line 33
    at Avalonia.Threading.JobRunner.RunJobs(Nullable`1 priority) in /_/src/Avalonia.Base/Threading/JobRunner.cs:line 37
    at Avalonia.Win32.Win32Platform.WndProc(IntPtr hWnd, UInt32 msg, IntPtr wParam, IntPtr lParam) in /_/src/Windows/Avalonia.Win32/Win32Platform.cs:line 283
    at Avalonia.Win32.Interop.UnmanagedMethods.DispatchMessage(MSG& lpmsg)
