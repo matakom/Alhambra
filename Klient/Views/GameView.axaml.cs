@@ -661,5 +661,18 @@ namespace Klient.Views
             }
 
         }
+        public static void Reset()
+        {
+            lengthOfAnimation = 2;
+            BottomCardsImages.Clear();
+            LeftCardsImages.Clear();
+            RightCardsImages.Clear();
+            TopCardsImages.Clear();
+            MoneyCards.Clear();
+            BuildingCards.Clear();
+            canvas = null;
+            UsedCard = null;
+            userControl = null;
+        }
     }
 }

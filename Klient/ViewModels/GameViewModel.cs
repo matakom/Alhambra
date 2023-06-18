@@ -282,15 +282,15 @@ namespace Klient.ViewModels
             }
 
             //Setting usernames in game
-            Bottom = Cards.Users[usersNames["bottom"]].Username + " - " + usersNames["bottom"];
-            Top = Cards.Users[usersNames["top"]].Username + " - " + usersNames["top"];
+            Bottom = Cards.Users[usersNames["bottom"]].Username + " - " + Cards.Users[usersNames["bottom"]].Points + " (" + usersNames["bottom"] + ")";
+            Top = Cards.Users[usersNames["top"]].Username + " - " + Cards.Users[usersNames["top"]].Points + " (" + usersNames["top"] + ")";
             if (usersNames.ContainsKey("left"))
             {
-                Left = Cards.Users[usersNames["left"]].Username + " - " + usersNames["left"];
+                Left = Cards.Users[usersNames["left"]].Username + " - " + Cards.Users[usersNames["left"]].Points + " (" + usersNames["left"] + ")";
             }
             if (usersNames.ContainsKey("right"))
             {
-                Right = Cards.Users[usersNames["right"]].Username + " - " + usersNames["right"];
+                Right = Cards.Users[usersNames["right"]].Username + " - " + Cards.Users[usersNames["right"]].Points + " (" + usersNames["right"] + ")";
             }
 
             int count = 0;
@@ -462,6 +462,34 @@ namespace Klient.ViewModels
                         PlayingUser = Cards.Users[Convert.ToInt16(response.Game.PlayingUser)].Username;
                         RefreshNumberOfTakenBuildings();
                         break;
+                    case "pointsRound":
+                        for (int i = 0; i < Cards.Users.Count; i++)
+                        {
+                            var user = Cards.Users[i];
+                            user.Points = Convert.ToInt32(response.points[i]);
+                            Cards.Users[i] = user;
+                        }
+                        Bottom = Cards.Users[usersNames["bottom"]].Username + " - " + Cards.Users[usersNames["bottom"]].Points + " (" + usersNames["bottom"] + ")";
+                        Top = Cards.Users[usersNames["top"]].Username + " - " + Cards.Users[usersNames["top"]].Points + " (" + usersNames["top"] + ")";
+                        if (usersNames.ContainsKey("left"))
+                        {
+                            Left = Cards.Users[usersNames["left"]].Username + " - " + Cards.Users[usersNames["left"]].Points + " (" + usersNames["left"] + ")";
+                        }
+                        if (usersNames.ContainsKey("right"))
+                        {
+                            Right = Cards.Users[usersNames["right"]].Username + " - " + Cards.Users[usersNames["right"]].Points + " (" + usersNames["right"] + ")";
+                        }
+                        break;
+                    case "gameEnded":
+                        for (int i = 0; i < Cards.Users.Count; i++)
+                        {
+                            var user = Cards.Users[i];
+                            user.Points = Convert.ToInt32(response.points[i]);
+                            Cards.Users[i] = user;
+                        }
+                        Reset();
+                        changeContentAction("gameEnd");
+                        break;
                 }
             }
         }
@@ -593,6 +621,23 @@ namespace Klient.ViewModels
                     NumberOfTakenBuildings[index][j] = Convert.ToString(Cards.Users[i].TakenBuildings[j]);
                 }
             }
+        }
+        public void Reset()
+        {
+            PlayingUser = "";
+
+            Bottom = "";
+            Top = "";
+            Left = "";
+            Right = "";
+
+            BottomCards.Clear();
+            TopCards.Clear();
+            NumberOfTakenBuildings.Clear();
+
+            usersNames.Clear();
+
+            // Reset any other necessary properties or collections
         }
     }
 }

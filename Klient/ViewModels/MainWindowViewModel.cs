@@ -45,7 +45,10 @@ namespace Klient.ViewModels
                 else if (viewModelName == "game")
                 {
                     Content = new GameViewModel(ChangeContent);
-                    Debug.WriteLine(Content);
+                }
+                else if (viewModelName == "gameEnd")
+                {
+                    Content = new GameEndViewModel(ChangeContent);
                 }
             }
             catch (Exception ex)
@@ -56,7 +59,7 @@ namespace Klient.ViewModels
 
                 // Zápis chyby do souboru
                 string logFilePath = "";
-                if(Global.ID != null)
+                if (Global.ID != null)
                 {
                     logFilePath = $"../../../.logs/errorlog{Global.ID}.txt"; // Cesta k souboru logu
                 }
@@ -90,8 +93,8 @@ namespace Klient.ViewModels
         }
         static async Task ConnectToServer()
         {
-            Uri serverUri = new Uri("ws://localhost:5000");
-            //Uri serverUri = new Uri("ws://192.168.1.111:5000");
+            //Uri serverUri = new Uri("ws://localhost:5000");
+            Uri serverUri = new Uri("ws://192.168.1.111:5000");
 
             Global.WebSocketConnection = new ClientWebSocket();
             try

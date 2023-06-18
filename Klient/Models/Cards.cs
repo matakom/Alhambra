@@ -41,6 +41,13 @@ namespace Klient.Models
             temp.Position = side;
             Users[id] = temp;
         }
+        public static void Reset()
+        {
+            MoneyOnTable = new Money[4];
+            BuildingsOnTable = new Buildings[4];
+            NumberOfPlayers = 0;
+            Users = new List<User>();
+        }
     }
     public class Money
     {
