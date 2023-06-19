@@ -211,10 +211,21 @@ namespace Klient.ViewModels
                         types[i] = "green";
                         break;
                 }
+                for (int j = i; j >= 0; j--)
+                {
+                    if (types[i] != types[j])
+                    {
+                        return new Dictionary<int, string>() { { 1, "bad" } };
+                    }
+                }
             }
             if (types.Count < 1)
             {
                 return new Dictionary<int, string>() { { -1, "chosenPlayersMoney" } };
+            }
+            if(value.Count == 0 || price == 0)
+            {
+                return new Dictionary<int, string>() { { 1, "notOk" } };
             }
             Global.SendAsync(new { action = "pickBuilding", gameCode = Global.GameCode, username = Global.Username, userID = Global.ID, cardName = building.Values, slot = building.Keys, price = price, moneyCardsName = moneyToBuy, moneyCardsType = types, moneyCardsValue = value });
             return new Dictionary<int, string>() { { 1, "ok" } };

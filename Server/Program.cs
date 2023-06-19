@@ -85,8 +85,8 @@ namespace Server
         static async void ConnectUsers()
         {
             string port = "5000";
-            //string url = @"http://localhost:" + port + "/";
-            string url = "http://192.168.1.111:" + port + "/";
+            string url = @"http://localhost:" + port + "/";
+            //string url = "http://192.168.1.111:" + port + "/";
             HttpListener listener = new HttpListener();
             listener.Prefixes.Add(url);
             listener.Start();
@@ -513,27 +513,18 @@ namespace Server
 
             using (StreamReader reader = new StreamReader(@"../../../Assets/buildingCards.txt"))
             {
-                int i = 0;// test
                 while (!reader.EndOfStream)
                 {
-                    i++; // test
                     string line = reader.ReadLine();
                     if (!string.IsNullOrEmpty(line))
                     {
                         line = line.Trim();
                         Games[response.gameCode.ToString()].DeckOfBuildings.Add(new Buildings(line, $@"/Assets/{line}.png", Convert.ToInt16(Convert.ToString(line[1]) + Convert.ToString(line[2])), Convert.ToInt16(Convert.ToString(line[0]))));
                     }
-                    // test
-                    if (i == 5)
-                    {
-                        break;
-                    }
-                    //test
                 }
             }
             Shuffle(Games[response.gameCode.ToString()].DeckOfBuildings);
 
-            /*
             
             int indexOfA = new Random().Next(33, 54);
             int indexOfB = new Random().Next(76, 97);
@@ -541,7 +532,6 @@ namespace Server
 
             Games[response.gameCode.ToString()].DeckOfMoney.Insert(indexOfA, new Money("a", $@"/Assets/a.png", -1, "-1", true));
             Games[response.gameCode.ToString()].DeckOfMoney.Insert(indexOfB, new Money("b", $@"/Assets/b.png", -1, "-1", true));
-            */
         }
         static void Shuffle<T>(List<T> list)
         {

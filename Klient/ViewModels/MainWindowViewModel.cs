@@ -93,8 +93,8 @@ namespace Klient.ViewModels
         }
         static async Task ConnectToServer()
         {
-            //Uri serverUri = new Uri("ws://localhost:5000");
-            Uri serverUri = new Uri("ws://192.168.1.111:5000");
+            Uri serverUri = new Uri("ws://localhost:5000");
+            //Uri serverUri = new Uri("ws://192.168.1.111:5000");
 
             Global.WebSocketConnection = new ClientWebSocket();
             try
